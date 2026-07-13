@@ -7,6 +7,15 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
+import { TimerProvider } from '@/lib/TimerContext';
+import Layout from '@/components/Layout';
+import Home from '@/pages/Home';
+import Projekte from '@/pages/Projekte';
+import ProjektDetail from '@/pages/ProjektDetail';
+import Telefonjournal from '@/pages/Telefonjournal';
+import Aufgaben from '@/pages/Aufgaben';
+import Finanzen from '@/pages/Finanzen';
+import Einstellungen from '@/pages/Einstellungen';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,10 +42,20 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <TimerProvider>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/projekte" element={<Projekte />} />
+          <Route path="/projekte/:id" element={<ProjektDetail />} />
+          <Route path="/telefon" element={<Telefonjournal />} />
+          <Route path="/aufgaben" element={<Aufgaben />} />
+          <Route path="/finanzen" element={<Finanzen />} />
+          <Route path="/einstellungen" element={<Einstellungen />} />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </TimerProvider>
   );
 };
 

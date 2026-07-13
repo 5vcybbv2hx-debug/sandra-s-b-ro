@@ -1,0 +1,24 @@
+{
+  "name": "Timer_Aktiv",
+  "type": "object",
+  "properties": {
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "start_zeit": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Startzeit"
+    },
+    "beschreibung": {
+      "type": "string",
+      "title": "Beschreibung"
+    }
+  },
+  "required": [
+    "projekt_id",
+    "start_zeit"
+  ]
+}

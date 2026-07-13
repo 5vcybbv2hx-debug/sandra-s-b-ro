@@ -1,0 +1,64 @@
+{
+  "name": "Telefonnotiz",
+  "type": "object",
+  "properties": {
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "kontakt_name": {
+      "type": "string",
+      "title": "Kontakt Name"
+    },
+    "telefonnummer": {
+      "type": "string",
+      "title": "Telefonnummer"
+    },
+    "datum": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Datum"
+    },
+    "besprochen": {
+      "type": "string",
+      "title": "Besprochen"
+    },
+    "naechster_schritt": {
+      "type": "string",
+      "title": "N\u00e4chster Schritt"
+    },
+    "termin": {
+      "type": "string",
+      "format": "date",
+      "title": "Termin"
+    },
+    "typ": {
+      "type": "string",
+      "title": "Typ",
+      "enum": [
+        "Eingehend",
+        "Ausgehend"
+      ],
+      "default": "Eingehend"
+    },
+    "erledigt": {
+      "type": "boolean",
+      "title": "Erledigt",
+      "default": false
+    },
+    "als_aufgabe_angelegt": {
+      "type": "boolean",
+      "title": "Als Aufgabe angelegt",
+      "default": false
+    },
+    "heute_anrufen": {
+      "type": "boolean",
+      "title": "Heute anrufen",
+      "default": false
+    }
+  },
+  "required": [
+    "kontakt_name"
+  ]
+}

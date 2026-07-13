@@ -1,0 +1,47 @@
+{
+  "name": "Zeiteintrag",
+  "type": "object",
+  "properties": {
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Datum"
+    },
+    "stunden": {
+      "type": "number",
+      "title": "Stunden"
+    },
+    "beschreibung": {
+      "type": "string",
+      "title": "Beschreibung"
+    },
+    "erfassungsart": {
+      "type": "string",
+      "title": "Erfassungsart",
+      "enum": [
+        "Timer",
+        "Manuell"
+      ],
+      "default": "Manuell"
+    },
+    "timer_start": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Timer Start"
+    },
+    "timer_ende": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Timer Ende"
+    }
+  },
+  "required": [
+    "projekt_id",
+    "stunden"
+  ]
+}

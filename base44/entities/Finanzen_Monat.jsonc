@@ -1,0 +1,42 @@
+{
+  "name": "Finanzen_Monat",
+  "type": "object",
+  "properties": {
+    "monat": {
+      "type": "string",
+      "title": "Monat"
+    },
+    "stunden_ziel": {
+      "type": "number",
+      "title": "Stunden Ziel",
+      "default": 0
+    },
+    "stundensatz_durchschnitt": {
+      "type": "number",
+      "title": "Stundensatz Durchschnitt",
+      "default": 0
+    },
+    "einnahmen_ist": {
+      "type": "number",
+      "title": "Einnahmen IST",
+      "default": 0
+    },
+    "ausgaben_ist": {
+      "type": "number",
+      "title": "Ausgaben IST",
+      "default": 0
+    },
+    "steuerruecklage_prozent": {
+      "type": "number",
+      "title": "Steuerr\u00fccklage %",
+      "default": 30
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    }
+  },
+  "required": [
+    "monat"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "Aufgabe",
+  "type": "object",
+  "properties": {
+    "titel": {
+      "type": "string",
+      "title": "Titel"
+    },
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "prioritaet": {
+      "type": "string",
+      "title": "Priorit\u00e4t",
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "default": "B"
+    },
+    "faellig_am": {
+      "type": "string",
+      "format": "date",
+      "title": "F\u00e4llig am"
+    },
+    "erledigt": {
+      "type": "boolean",
+      "title": "Erledigt",
+      "default": false
+    },
+    "erledigt_am": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Erledigt am"
+    },
+    "notiz": {
+      "type": "string",
+      "title": "Notiz"
+    },
+    "heute_fokussiert": {
+      "type": "boolean",
+      "title": "Heute fokussiert",
+      "default": false
+    }
+  },
+  "required": [
+    "titel"
+  ]
+}

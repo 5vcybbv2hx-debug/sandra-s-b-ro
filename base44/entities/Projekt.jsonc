@@ -1,0 +1,97 @@
+{
+  "name": "Projekt",
+  "type": "object",
+  "properties": {
+    "kunde_name": {
+      "type": "string",
+      "title": "Kunde Name"
+    },
+    "kunde_firma": {
+      "type": "string",
+      "title": "Kunde Firma"
+    },
+    "kunde_telefon": {
+      "type": "string",
+      "title": "Kunde Telefon"
+    },
+    "kunde_email": {
+      "type": "string",
+      "title": "Kunde E-Mail"
+    },
+    "projekt_name": {
+      "type": "string",
+      "title": "Projektname"
+    },
+    "projektart": {
+      "type": "string",
+      "title": "Projektart",
+      "enum": [
+        "Grundriss",
+        "Schnitt",
+        "Ansicht",
+        "Eingabeplanung",
+        "Genehmigungsplanung",
+        "Ausf\u00fchrungsplanung",
+        "Sonstiges"
+      ],
+      "default": "Sonstiges"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Anfrage",
+        "Aktiv",
+        "Wartend",
+        "Abgeschlossen",
+        "Archiviert"
+      ],
+      "default": "Anfrage"
+    },
+    "stundensatz": {
+      "type": "number",
+      "title": "Stundensatz",
+      "default": 0
+    },
+    "abrechnungsart": {
+      "type": "string",
+      "title": "Abrechnungsart",
+      "enum": [
+        "St\u00fcndlich",
+        "Pauschal"
+      ],
+      "default": "St\u00fcndlich"
+    },
+    "pauschalbetrag": {
+      "type": "number",
+      "title": "Pauschalbetrag",
+      "default": 0
+    },
+    "startdatum": {
+      "type": "string",
+      "format": "date",
+      "title": "Startdatum"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "title": "Deadline"
+    },
+    "beschreibung": {
+      "type": "string",
+      "title": "Beschreibung"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "ist_abgerechnet": {
+      "type": "boolean",
+      "title": "Abgerechnet",
+      "default": false
+    }
+  },
+  "required": [
+    "projekt_name"
+  ]
+}
