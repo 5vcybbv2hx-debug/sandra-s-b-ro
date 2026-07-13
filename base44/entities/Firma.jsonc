@@ -1,0 +1,42 @@
+{
+  "name": "Firma",
+  "type": "object",
+  "properties": {
+    "firmenname": {
+      "type": "string",
+      "title": "Firmenname"
+    },
+    "branche": {
+      "type": "string",
+      "title": "Branche"
+    },
+    "adresse": {
+      "type": "string",
+      "title": "Adresse"
+    },
+    "telefon_zentrale": {
+      "type": "string",
+      "title": "Telefon Zentrale"
+    },
+    "email_allgemein": {
+      "type": "string",
+      "title": "E-Mail Allgemein"
+    },
+    "website": {
+      "type": "string",
+      "title": "Website"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "ist_aktiv": {
+      "type": "boolean",
+      "title": "Aktiv",
+      "default": true
+    }
+  },
+  "required": [
+    "firmenname"
+  ]
+}

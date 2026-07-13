@@ -1,0 +1,58 @@
+{
+  "name": "Ansprechpartner",
+  "type": "object",
+  "properties": {
+    "vorname": {
+      "type": "string",
+      "title": "Vorname"
+    },
+    "nachname": {
+      "type": "string",
+      "title": "Nachname"
+    },
+    "firma_id": {
+      "type": "string",
+      "reference": "Firma",
+      "title": "Firma"
+    },
+    "rolle": {
+      "type": "string",
+      "title": "Rolle"
+    },
+    "telefon": {
+      "type": "string",
+      "title": "Telefon"
+    },
+    "mobil": {
+      "type": "string",
+      "title": "Mobil"
+    },
+    "email": {
+      "type": "string",
+      "title": "E-Mail"
+    },
+    "bevorzugter_kontaktweg": {
+      "type": "string",
+      "title": "Bevorzugter Kontaktweg",
+      "enum": [
+        "Telefon",
+        "E-Mail",
+        "WhatsApp"
+      ],
+      "default": "Telefon"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "letzter_kontakt": {
+      "type": "string",
+      "format": "date",
+      "title": "Letzter Kontakt"
+    }
+  },
+  "required": [
+    "vorname",
+    "nachname"
+  ]
+}

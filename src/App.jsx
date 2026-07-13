@@ -17,7 +17,8 @@ import Aufgaben from '@/pages/Aufgaben';
 import Finanzen from '@/pages/Finanzen';
 import Einstellungen from '@/pages/Einstellungen';
 import Kontakte from '@/pages/Kontakte';
-import KontaktDetail from '@/pages/KontaktDetail';
+import FirmenDetail from '@/pages/FirmenDetail';
+import PersonDetail from '@/pages/PersonDetail';
 import Zeiten from '@/pages/Zeiten';
 
 const AuthenticatedApp = () => {
@@ -52,7 +53,8 @@ const AuthenticatedApp = () => {
           <Route path="/projekte" element={<Projekte />} />
           <Route path="/projekte/:id" element={<ProjektDetail />} />
           <Route path="/kontakte" element={<Kontakte />} />
-          <Route path="/kontakte/:id" element={<KontaktDetail />} />
+          <Route path="/firmen/:id" element={<FirmenDetail />} />
+          <Route path="/personen/:id" element={<PersonDetail />} />
           <Route path="/zeiten" element={<Zeiten />} />
           <Route path="/telefon" element={<Telefonjournal />} />
           <Route path="/aufgaben" element={<Aufgaben />} />

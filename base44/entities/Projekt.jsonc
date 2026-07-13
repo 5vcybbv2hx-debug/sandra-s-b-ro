@@ -52,10 +52,25 @@
       ],
       "default": "Anfrage"
     },
+    "firma_id": {
+      "type": "string",
+      "reference": "Firma",
+      "title": "Firma"
+    },
+    "ansprechpartner_id": {
+      "type": "string",
+      "reference": "Ansprechpartner",
+      "title": "Ansprechpartner"
+    },
+    "hauptansprechpartner_id": {
+      "type": "string",
+      "reference": "Ansprechpartner",
+      "title": "Hauptansprechpartner"
+    },
     "kontakt_id": {
       "type": "string",
       "reference": "Kontakt",
-      "title": "Kontakt"
+      "title": "Kontakt (alt)"
     },
     "phase": {
       "type": "string",

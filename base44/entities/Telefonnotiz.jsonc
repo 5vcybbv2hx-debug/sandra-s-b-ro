@@ -7,10 +7,15 @@
       "reference": "Projekt",
       "title": "Projekt"
     },
+    "ansprechpartner_id": {
+      "type": "string",
+      "reference": "Ansprechpartner",
+      "title": "Ansprechpartner"
+    },
     "kontakt_id": {
       "type": "string",
       "reference": "Kontakt",
-      "title": "Kontakt"
+      "title": "Kontakt (alt)"
     },
     "kontakt_name": {
       "type": "string",

@@ -14,10 +14,12 @@ const PHASES = ['Entwurf', 'Baugesuch', 'Werkplanung'];
 const BAUVORHABEN = ['Einfamilienhaus', 'Doppelhaushälfte', 'Mehrfamilienhaus', 'Umbau', 'Anbau', 'Gewerbebau', 'Sonstiges'];
 
 export default function NeuesProjektModal({ onClose, onCreated }) {
-  const [kontakte, setKontakte] = useState([]);
+  const [firmen, setFirmen] = useState([]);
+  const [ansprechpartner, setAnsprechpartner] = useState([]);
   const [erfahrungswerte, setErfahrungswerte] = useState([]);
   const [form, setForm] = useState({
-    projekt_name: '', kontakt_id: '', kunde_name: '', kunde_firma: '', kunde_telefon: '', kunde_email: '',
+    projekt_name: '', firma_id: '', hauptansprechpartner_id: '',
+    kunde_name: '', kunde_firma: '', kunde_telefon: '', kunde_email: '',
     projektart: 'Sonstiges', bauvorhaben: '', status: 'Anfrage', phase: 'Entwurf',
     stundensatz: getDefaultStundensatz(), abrechnungsart: 'Stündlich', pauschalbetrag: 0,
     startdatum: todayISO(), deadline: '', deadline_entwurf: '', deadline_baugesuch: '', deadline_werkplanung: '',
@@ -26,16 +28,18 @@ export default function NeuesProjektModal({ onClose, onCreated }) {
   });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { base44.entities.Kontakt.list('-name', 200).then(setKontakte).catch(() => {}); }, []);
+  useEffect(() => {
+    base44.entities.Firma.list('-firmenname', 200).then(setFirmen).catch(() => {});
+    base44.entities.Ansprechpartner.list('-nachname', 200).then(setAnsprechpartner).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (form.bauvorhaben) base44.entities.Phasen_Erfahrungswerte.filter({ projektart: form.bauvorhaben }).then(setErfahrungswerte).catch(() => setErfahrungswerte([]));
     else setErfahrungswerte([]);
   }, [form.bauvorhaben]);
 
-  const onKontaktChange = (kid) => {
-    const k = kontakte.find((x) => x.id === kid);
-    setForm((prev) => ({ ...prev, kontakt_id: kid, kunde_name: k?.name || prev.kunde_name, kunde_firma: k?.firma || prev.kunde_firma, kunde_telefon: k?.telefon || prev.kunde_telefon, kunde_email: k?.email || prev.kunde_email }));
-  };
+  const onFirmaChange = (fid) => setForm({ ...form, firma_id: fid, hauptansprechpartner_id: '' });
+  const filteredAnsprechpartner = form.firma_id ? ansprechpartner.filter((a) => a.firma_id === form.firma_id) : ansprechpartner;
 
   const applyErfahrungswert = (e) => {
     setForm({ ...form, [`phase_${e.phase.toLowerCase()}_geplante_stunden`]: e.durchschnitt_stunden });
@@ -46,7 +50,19 @@ export default function NeuesProjektModal({ onClose, onCreated }) {
     if (!form.projekt_name.trim()) return;
     setSaving(true);
     try {
-      await base44.entities.Projekt.create({ ...form, stundensatz: Number(form.stundensatz) || 0, pauschalbetrag: Number(form.pauschalbetrag) || 0, gesamtbudget_stunden: Number(form.gesamtbudget_stunden) || 0, phase_entwurf_geplante_stunden: Number(form.phase_entwurf_geplante_stunden) || 0, phase_baugesuch_geplante_stunden: Number(form.phase_baugesuch_geplante_stunden) || 0, phase_werkplanung_geplante_stunden: Number(form.phase_werkplanung_geplante_stunden) || 0 });
+      const payload = {
+        ...form,
+        stundensatz: Number(form.stundensatz) || 0,
+        pauschalbetrag: Number(form.pauschalbetrag) || 0,
+        gesamtbudget_stunden: Number(form.gesamtbudget_stunden) || 0,
+        phase_entwurf_geplante_stunden: Number(form.phase_entwurf_geplante_stunden) || 0,
+        phase_baugesuch_geplante_stunden: Number(form.phase_baugesuch_geplante_stunden) || 0,
+        phase_werkplanung_geplante_stunden: Number(form.phase_werkplanung_geplante_stunden) || 0,
+        firma_id: form.firma_id || undefined,
+        hauptansprechpartner_id: form.hauptansprechpartner_id || undefined,
+        ansprechpartner_id: (!form.firma_id && form.hauptansprechpartner_id) ? form.hauptansprechpartner_id : undefined,
+      };
+      await base44.entities.Projekt.create(payload);
       toast.success('Projekt erstellt'); onCreated(); onClose();
     } catch (e) { toast.error('Fehler beim Erstellen'); } finally { setSaving(false); }
   };
@@ -57,7 +73,10 @@ export default function NeuesProjektModal({ onClose, onCreated }) {
         <DialogHeader><DialogTitle>Neues Projekt</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div><Label>Projektname *</Label><Input value={form.projekt_name} onChange={(e) => setForm({ ...form, projekt_name: e.target.value })} placeholder="z.B. Grundriss Müller" className="min-h-[48px]" autoFocus /></div>
-          <div><Label>Kontakt</Label><Select value={form.kontakt_id} onValueChange={onKontaktChange}><SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Kontakt wählen" /></SelectTrigger><SelectContent>{kontakte.map((k) => <SelectItem key={k.id} value={k.id}>{k.name}{k.firma && ` · ${k.firma}`}</SelectItem>)}</SelectContent></Select></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label>Firma</Label><Select value={form.firma_id || '_none'} onValueChange={(v) => onFirmaChange(v === '_none' ? '' : v)}><SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Firma wählen" /></SelectTrigger><SelectContent><SelectItem value="_none">Keine Firma (Privat)</SelectItem>{firmen.map((f) => <SelectItem key={f.id} value={f.id}>{f.firmenname}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>Hauptansprechpartner</Label><Select value={form.hauptansprechpartner_id || '_none'} onValueChange={(v) => setForm({ ...form, hauptansprechpartner_id: v === '_none' ? '' : v })}><SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Person wählen" /></SelectTrigger><SelectContent><SelectItem value="_none">Keine</SelectItem>{filteredAnsprechpartner.map((a) => <SelectItem key={a.id} value={a.id}>{a.vorname} {a.nachname}</SelectItem>)}</SelectContent></Select></div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Projektart</Label><Select value={form.projektart} onValueChange={(v) => setForm({ ...form, projektart: v })}><SelectTrigger className="min-h-[48px]"><SelectValue /></SelectTrigger><SelectContent>{['Grundriss', 'Schnitt', 'Ansicht', 'Eingabeplanung', 'Genehmigungsplanung', 'Ausführungsplanung', 'Sonstiges'].map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Bauvorhaben</Label><Select value={form.bauvorhaben} onValueChange={(v) => setForm({ ...form, bauvorhaben: v })}><SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Wählen" /></SelectTrigger><SelectContent>{BAUVORHABEN.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div>
