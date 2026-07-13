@@ -1,0 +1,50 @@
+{
+  "name": "Kontakt",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "firma": {
+      "type": "string",
+      "title": "Firma"
+    },
+    "rolle": {
+      "type": "string",
+      "title": "Rolle",
+      "enum": [
+        "Bauherr",
+        "Architekt",
+        "Bautr\u00e4ger",
+        "Beh\u00f6rde",
+        "Sonstiges"
+      ],
+      "default": "Bauherr"
+    },
+    "telefon": {
+      "type": "string",
+      "title": "Telefon"
+    },
+    "email": {
+      "type": "string",
+      "title": "E-Mail"
+    },
+    "adresse": {
+      "type": "string",
+      "title": "Adresse"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "letzter_kontakt": {
+      "type": "string",
+      "format": "date",
+      "title": "Letzter Kontakt"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

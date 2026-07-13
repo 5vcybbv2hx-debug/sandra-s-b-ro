@@ -7,6 +7,11 @@
       "reference": "Projekt",
       "title": "Projekt"
     },
+    "kontakt_id": {
+      "type": "string",
+      "reference": "Kontakt",
+      "title": "Kontakt"
+    },
     "kontakt_name": {
       "type": "string",
       "title": "Kontakt Name"

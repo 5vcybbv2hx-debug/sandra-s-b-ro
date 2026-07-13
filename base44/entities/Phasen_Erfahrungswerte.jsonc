@@ -1,0 +1,43 @@
+{
+  "name": "Phasen_Erfahrungswerte",
+  "type": "object",
+  "properties": {
+    "phase": {
+      "type": "string",
+      "title": "Phase",
+      "enum": [
+        "Entwurf",
+        "Baugesuch",
+        "Werkplanung"
+      ]
+    },
+    "projektart": {
+      "type": "string",
+      "title": "Bauvorhaben"
+    },
+    "durchschnitt_stunden": {
+      "type": "number",
+      "title": "Durchschnitt Stunden",
+      "default": 0
+    },
+    "min_stunden": {
+      "type": "number",
+      "title": "Min Stunden",
+      "default": 0
+    },
+    "max_stunden": {
+      "type": "number",
+      "title": "Max Stunden",
+      "default": 0
+    },
+    "anzahl_projekte": {
+      "type": "number",
+      "title": "Anzahl Projekte",
+      "default": 0
+    }
+  },
+  "required": [
+    "phase",
+    "projektart"
+  ]
+}

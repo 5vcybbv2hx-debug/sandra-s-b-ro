@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ArrowLeft } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
+import ProjektPhasen from '@/components/projekt/ProjektPhasen';
 import ProjektUebersicht from '@/components/projekt/ProjektUebersicht';
 import ProjektZeiten from '@/components/projekt/ProjektZeiten';
 import ProjektAufgaben from '@/components/projekt/ProjektAufgaben';
@@ -55,6 +56,7 @@ export default function ProjektDetail() {
       <Tabs defaultValue="uebersicht">
         <TabsList className="w-full justify-start overflow-x-auto mb-6 h-auto">
           <TabsTrigger value="uebersicht" className="min-h-[40px]">Übersicht</TabsTrigger>
+          <TabsTrigger value="phasen" className="min-h-[40px]">Phasen</TabsTrigger>
           <TabsTrigger value="zeiten" className="min-h-[40px]">Zeiten</TabsTrigger>
           <TabsTrigger value="aufgaben" className="min-h-[40px]">Aufgaben</TabsTrigger>
           <TabsTrigger value="telefone" className="min-h-[40px]">Telefonate</TabsTrigger>
@@ -62,6 +64,9 @@ export default function ProjektDetail() {
         </TabsList>
         <TabsContent value="uebersicht">
           <ProjektUebersicht projekt={projekt} onUpdate={loadProjekt} />
+        </TabsContent>
+        <TabsContent value="phasen">
+          <ProjektPhasen projekt={projekt} onUpdate={loadProjekt} />
         </TabsContent>
         <TabsContent value="zeiten">
           <ProjektZeiten projekt={projekt} />

@@ -36,6 +36,10 @@
       ],
       "default": "Sonstiges"
     },
+    "bauvorhaben": {
+      "type": "string",
+      "title": "Bauvorhaben"
+    },
     "status": {
       "type": "string",
       "title": "Status",
@@ -47,6 +51,86 @@
         "Archiviert"
       ],
       "default": "Anfrage"
+    },
+    "kontakt_id": {
+      "type": "string",
+      "reference": "Kontakt",
+      "title": "Kontakt"
+    },
+    "phase": {
+      "type": "string",
+      "title": "Aktuelle Phase",
+      "enum": [
+        "Entwurf",
+        "Baugesuch",
+        "Werkplanung"
+      ],
+      "default": "Entwurf"
+    },
+    "deadline_entwurf": {
+      "type": "string",
+      "format": "date",
+      "title": "Deadline Entwurf"
+    },
+    "deadline_baugesuch": {
+      "type": "string",
+      "format": "date",
+      "title": "Deadline Baugesuch"
+    },
+    "deadline_werkplanung": {
+      "type": "string",
+      "format": "date",
+      "title": "Deadline Werkplanung"
+    },
+    "gesamtbudget_stunden": {
+      "type": "number",
+      "title": "Gesamtbudget Stunden",
+      "default": 0
+    },
+    "phase_entwurf_status": {
+      "type": "string",
+      "title": "Phase Entwurf Status",
+      "enum": [
+        "Offen",
+        "In Arbeit",
+        "Abgeschlossen"
+      ],
+      "default": "Offen"
+    },
+    "phase_entwurf_geplante_stunden": {
+      "type": "number",
+      "title": "Entwurf geplante Stunden",
+      "default": 0
+    },
+    "phase_baugesuch_status": {
+      "type": "string",
+      "title": "Phase Baugesuch Status",
+      "enum": [
+        "Offen",
+        "In Arbeit",
+        "Abgeschlossen"
+      ],
+      "default": "Offen"
+    },
+    "phase_baugesuch_geplante_stunden": {
+      "type": "number",
+      "title": "Baugesuch geplante Stunden",
+      "default": 0
+    },
+    "phase_werkplanung_status": {
+      "type": "string",
+      "title": "Phase Werkplanung Status",
+      "enum": [
+        "Offen",
+        "In Arbeit",
+        "Abgeschlossen"
+      ],
+      "default": "Offen"
+    },
+    "phase_werkplanung_geplante_stunden": {
+      "type": "number",
+      "title": "Werkplanung geplante Stunden",
+      "default": 0
     },
     "stundensatz": {
       "type": "number",

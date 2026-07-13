@@ -19,3 +19,11 @@ export function getDefaultStundensatz() {
 export function getDefaultSteuerProzent() {
   return getSettings().steuerruecklage_prozent || 30;
 }
+
+export function getWeeklyCapacity() {
+  return getSettings().weekly_capacity || 20;
+}
+
+export function getWarningThreshold() {
+  return getSettings().warning_threshold || 80;
+}

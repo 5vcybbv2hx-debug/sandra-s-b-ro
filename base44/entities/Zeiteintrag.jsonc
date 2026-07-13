@@ -38,6 +38,15 @@
       "type": "string",
       "format": "date-time",
       "title": "Timer Ende"
+    },
+    "phase": {
+      "type": "string",
+      "title": "Phase",
+      "enum": [
+        "Entwurf",
+        "Baugesuch",
+        "Werkplanung"
+      ]
     }
   },
   "required": [

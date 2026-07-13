@@ -12,19 +12,19 @@ module.exports = {
   		colors: {
   			background: 'hsl(var(--background))',
   			brand: {
-  				DEFAULT: '#00AEBD',
-  				light: '#E6F7F9',
-  				dark: '#008A96'
+  				DEFAULT: '#00A3A3',
+  				light: '#E6F7F7',
+  				dark: '#007A7A'
   			},
   			accent: {
-  				DEFAULT: '#E0006A',
+  				DEFAULT: '#C0006A',
   				light: '#FCE6F0',
-  				dark: '#B00054'
+  				dark: '#990055'
   			},
   			cardbg: '#F7FAFA',
   			status: {
-  				anfrage: '#E0006A',
-  				aktiv: '#00AEBD',
+  				anfrage: '#C0006A',
+  				aktiv: '#00A3A3',
   				wartend: '#F59E0B',
   				abgeschlossen: '#10B981',
   				archiviert: '#9CA3AF'
