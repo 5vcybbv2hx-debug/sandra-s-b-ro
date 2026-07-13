@@ -2,13 +2,22 @@
   "name": "Firma",
   "type": "object",
   "properties": {
-    "firmenname": {
+    "name": {
       "type": "string",
-      "title": "Firmenname"
+      "title": "Name"
     },
     "branche": {
       "type": "string",
-      "title": "Branche"
+      "title": "Branche",
+      "enum": [
+        "Architekturb\u00fcro",
+        "Bautr\u00e4ger",
+        "Bauunternehmen",
+        "Privatperson",
+        "Beh\u00f6rde",
+        "Sonstiges"
+      ],
+      "default": "Sonstiges"
     },
     "adresse": {
       "type": "string",
@@ -22,21 +31,17 @@
       "type": "string",
       "title": "E-Mail Allgemein"
     },
-    "website": {
-      "type": "string",
-      "title": "Website"
-    },
     "notizen": {
       "type": "string",
       "title": "Notizen"
     },
-    "ist_aktiv": {
+    "aktiv": {
       "type": "boolean",
       "title": "Aktiv",
       "default": true
     }
   },
   "required": [
-    "firmenname"
+    "name"
   ]
 }

@@ -2,25 +2,30 @@
   "name": "Projekt",
   "type": "object",
   "properties": {
-    "kunde_name": {
-      "type": "string",
-      "title": "Kunde Name"
-    },
-    "kunde_firma": {
-      "type": "string",
-      "title": "Kunde Firma"
-    },
-    "kunde_telefon": {
-      "type": "string",
-      "title": "Kunde Telefon"
-    },
-    "kunde_email": {
-      "type": "string",
-      "title": "Kunde E-Mail"
-    },
     "projekt_name": {
       "type": "string",
       "title": "Projektname"
+    },
+    "firma_id": {
+      "type": "string",
+      "reference": "Firma",
+      "title": "Firma"
+    },
+    "haupt_ansprechpartner_id": {
+      "type": "string",
+      "reference": "Ansprechpartner",
+      "title": "Hauptansprechpartner"
+    },
+    "weitere_ansprechpartner_ids": {
+      "type": "array",
+      "title": "Weitere Ansprechpartner",
+      "items": {
+        "type": "string"
+      }
+    },
+    "beschreibung": {
+      "type": "string",
+      "title": "Beschreibung"
     },
     "projektart": {
       "type": "string",
@@ -28,17 +33,13 @@
       "enum": [
         "Grundriss",
         "Schnitt",
-        "Ansicht",
-        "Eingabeplanung",
         "Genehmigungsplanung",
         "Ausf\u00fchrungsplanung",
+        "Werkplanung",
+        "Bestandsaufnahme",
         "Sonstiges"
       ],
       "default": "Sonstiges"
-    },
-    "bauvorhaben": {
-      "type": "string",
-      "title": "Bauvorhaben"
     },
     "status": {
       "type": "string",
@@ -52,100 +53,15 @@
       ],
       "default": "Anfrage"
     },
-    "firma_id": {
-      "type": "string",
-      "reference": "Firma",
-      "title": "Firma"
-    },
-    "ansprechpartner_id": {
-      "type": "string",
-      "reference": "Ansprechpartner",
-      "title": "Ansprechpartner"
-    },
-    "hauptansprechpartner_id": {
-      "type": "string",
-      "reference": "Ansprechpartner",
-      "title": "Hauptansprechpartner"
-    },
-    "kontakt_id": {
-      "type": "string",
-      "reference": "Kontakt",
-      "title": "Kontakt (alt)"
-    },
-    "phase": {
-      "type": "string",
-      "title": "Aktuelle Phase",
-      "enum": [
-        "Entwurf",
-        "Baugesuch",
-        "Werkplanung"
-      ],
-      "default": "Entwurf"
-    },
-    "deadline_entwurf": {
+    "startdatum": {
       "type": "string",
       "format": "date",
-      "title": "Deadline Entwurf"
+      "title": "Startdatum"
     },
-    "deadline_baugesuch": {
+    "deadline": {
       "type": "string",
       "format": "date",
-      "title": "Deadline Baugesuch"
-    },
-    "deadline_werkplanung": {
-      "type": "string",
-      "format": "date",
-      "title": "Deadline Werkplanung"
-    },
-    "gesamtbudget_stunden": {
-      "type": "number",
-      "title": "Gesamtbudget Stunden",
-      "default": 0
-    },
-    "phase_entwurf_status": {
-      "type": "string",
-      "title": "Phase Entwurf Status",
-      "enum": [
-        "Offen",
-        "In Arbeit",
-        "Abgeschlossen"
-      ],
-      "default": "Offen"
-    },
-    "phase_entwurf_geplante_stunden": {
-      "type": "number",
-      "title": "Entwurf geplante Stunden",
-      "default": 0
-    },
-    "phase_baugesuch_status": {
-      "type": "string",
-      "title": "Phase Baugesuch Status",
-      "enum": [
-        "Offen",
-        "In Arbeit",
-        "Abgeschlossen"
-      ],
-      "default": "Offen"
-    },
-    "phase_baugesuch_geplante_stunden": {
-      "type": "number",
-      "title": "Baugesuch geplante Stunden",
-      "default": 0
-    },
-    "phase_werkplanung_status": {
-      "type": "string",
-      "title": "Phase Werkplanung Status",
-      "enum": [
-        "Offen",
-        "In Arbeit",
-        "Abgeschlossen"
-      ],
-      "default": "Offen"
-    },
-    "phase_werkplanung_geplante_stunden": {
-      "type": "number",
-      "title": "Werkplanung geplante Stunden",
-      "default": 0
+      "title": "Deadline"
     },
     "stundensatz": {
       "type": "number",
@@ -166,28 +82,29 @@
       "title": "Pauschalbetrag",
       "default": 0
     },
-    "startdatum": {
-      "type": "string",
-      "format": "date",
-      "title": "Startdatum"
-    },
-    "deadline": {
-      "type": "string",
-      "format": "date",
-      "title": "Deadline"
-    },
-    "beschreibung": {
-      "type": "string",
-      "title": "Beschreibung"
-    },
-    "notizen": {
-      "type": "string",
-      "title": "Notizen"
+    "geschaetzte_stunden_gesamt": {
+      "type": "number",
+      "title": "Gesch\u00e4tzte Stunden Gesamt",
+      "default": 0
     },
     "ist_abgerechnet": {
       "type": "boolean",
       "title": "Abgerechnet",
       "default": false
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "aktuelle_phase": {
+      "type": "string",
+      "title": "Aktuelle Phase",
+      "enum": [
+        "Entwurf",
+        "Baugesuch",
+        "Werkplanung"
+      ],
+      "default": "Entwurf"
     }
   },
   "required": [

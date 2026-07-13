@@ -7,6 +7,11 @@
       "reference": "Projekt",
       "title": "Projekt"
     },
+    "phase_id": {
+      "type": "string",
+      "reference": "Projektphase",
+      "title": "Phase"
+    },
     "datum": {
       "type": "string",
       "format": "date",
@@ -20,33 +25,20 @@
       "type": "string",
       "title": "Beschreibung"
     },
-    "erfassungsart": {
-      "type": "string",
-      "title": "Erfassungsart",
-      "enum": [
-        "Timer",
-        "Manuell"
-      ],
-      "default": "Manuell"
+    "ist_abgerechnet": {
+      "type": "boolean",
+      "title": "Abgerechnet",
+      "default": false
     },
-    "timer_start": {
+    "timer_gestartet_um": {
       "type": "string",
       "format": "date-time",
-      "title": "Timer Start"
+      "title": "Timer gestartet um"
     },
-    "timer_ende": {
-      "type": "string",
-      "format": "date-time",
-      "title": "Timer Ende"
-    },
-    "phase": {
-      "type": "string",
-      "title": "Phase",
-      "enum": [
-        "Entwurf",
-        "Baugesuch",
-        "Werkplanung"
-      ]
+    "timer_laeuft": {
+      "type": "boolean",
+      "title": "Timer l\u00e4uft",
+      "default": false
     }
   },
   "required": [

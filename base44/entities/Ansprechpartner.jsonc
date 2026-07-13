@@ -17,29 +17,24 @@
     },
     "rolle": {
       "type": "string",
-      "title": "Rolle"
+      "title": "Rolle",
+      "enum": [
+        "Projektleiter",
+        "Gesch\u00e4ftsf\u00fchrer",
+        "Bauleiter",
+        "Sachbearbeiter",
+        "Bauherr",
+        "Sonstiges"
+      ],
+      "default": "Sonstiges"
     },
     "telefon": {
       "type": "string",
       "title": "Telefon"
     },
-    "mobil": {
-      "type": "string",
-      "title": "Mobil"
-    },
     "email": {
       "type": "string",
       "title": "E-Mail"
-    },
-    "bevorzugter_kontaktweg": {
-      "type": "string",
-      "title": "Bevorzugter Kontaktweg",
-      "enum": [
-        "Telefon",
-        "E-Mail",
-        "WhatsApp"
-      ],
-      "default": "Telefon"
     },
     "notizen": {
       "type": "string",

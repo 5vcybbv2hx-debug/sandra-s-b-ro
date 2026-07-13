@@ -12,23 +12,27 @@
       "reference": "Ansprechpartner",
       "title": "Ansprechpartner"
     },
-    "kontakt_id": {
-      "type": "string",
-      "reference": "Kontakt",
-      "title": "Kontakt (alt)"
-    },
     "kontakt_name": {
       "type": "string",
       "title": "Kontakt Name"
-    },
-    "telefonnummer": {
-      "type": "string",
-      "title": "Telefonnummer"
     },
     "datum": {
       "type": "string",
       "format": "date-time",
       "title": "Datum"
+    },
+    "typ": {
+      "type": "string",
+      "title": "Typ",
+      "enum": [
+        "Eingehend",
+        "Ausgehend"
+      ],
+      "default": "Eingehend"
+    },
+    "telefonnummer": {
+      "type": "string",
+      "title": "Telefonnummer"
     },
     "besprochen": {
       "type": "string",
@@ -43,28 +47,14 @@
       "format": "date",
       "title": "Termin"
     },
-    "typ": {
-      "type": "string",
-      "title": "Typ",
-      "enum": [
-        "Eingehend",
-        "Ausgehend"
-      ],
-      "default": "Eingehend"
-    },
-    "erledigt": {
-      "type": "boolean",
-      "title": "Erledigt",
-      "default": false
-    },
     "als_aufgabe_angelegt": {
       "type": "boolean",
       "title": "Als Aufgabe angelegt",
       "default": false
     },
-    "heute_anrufen": {
+    "erledigt": {
       "type": "boolean",
-      "title": "Heute anrufen",
+      "title": "Erledigt",
       "default": false
     }
   },

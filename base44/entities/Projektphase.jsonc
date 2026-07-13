@@ -1,0 +1,58 @@
+{
+  "name": "Projektphase",
+  "type": "object",
+  "properties": {
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "phase": {
+      "type": "string",
+      "title": "Phase",
+      "enum": [
+        "Entwurf",
+        "Baugesuch",
+        "Werkplanung"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Offen",
+        "Aktiv",
+        "Abgeschlossen"
+      ],
+      "default": "Offen"
+    },
+    "startdatum": {
+      "type": "string",
+      "format": "date",
+      "title": "Startdatum"
+    },
+    "enddatum_geplant": {
+      "type": "string",
+      "format": "date",
+      "title": "Enddatum geplant"
+    },
+    "stunden_geschaetzt": {
+      "type": "number",
+      "title": "Stunden gesch\u00e4tzt",
+      "default": 0
+    },
+    "stunden_erfasst": {
+      "type": "number",
+      "title": "Stunden erfasst",
+      "default": 0
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    }
+  },
+  "required": [
+    "projekt_id",
+    "phase"
+  ]
+}

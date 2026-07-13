@@ -3,7 +3,7 @@ import { Toaster } from 'sonner';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import TimerBanner from './TimerBanner';
-import PhoneFAB from './PhoneFAB';
+import QuickCaptureFAB from './QuickCaptureFAB';
 
 export default function Layout() {
   return (
@@ -16,7 +16,7 @@ export default function Layout() {
         </main>
       </div>
       <BottomNav />
-      <PhoneFAB />
+      <QuickCaptureFAB />
       <Toaster position="top-center" richColors />
     </div>
   );

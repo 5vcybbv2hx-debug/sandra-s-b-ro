@@ -1,0 +1,32 @@
+{
+  "name": "Kapazitaetseinstellung",
+  "type": "object",
+  "properties": {
+    "woechentliche_zielstunden": {
+      "type": "number",
+      "title": "W\u00f6chentliche Zielstunden",
+      "default": 25
+    },
+    "stundensatz_standard": {
+      "type": "number",
+      "title": "Stundensatz Standard",
+      "default": 65
+    },
+    "steuerrueckstellung_prozent": {
+      "type": "number",
+      "title": "Steuerr\u00fcckstellung %",
+      "default": 30
+    },
+    "monatliches_umsatzziel": {
+      "type": "number",
+      "title": "Monatliches Umsatzziel",
+      "default": 6500
+    },
+    "erfahrungswerte": {
+      "type": "object",
+      "title": "Erfahrungswerte",
+      "additionalProperties": true
+    }
+  },
+  "required": []
+}
