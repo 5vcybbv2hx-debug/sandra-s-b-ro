@@ -1,0 +1,42 @@
+{
+  "name": "Erfahrungswerte beim Projektabchluss aktualisieren",
+  "description": "Auto-Lernloop: Aktualisiert Phasen_Erfahrungswerte mit Vertrauens-Score, wenn ein Projekt auf Abgeschlossen gesetzt wird",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Projekt",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"Abgeschlossen\" and .trigger.old_data.status != \"Abgeschlossen\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "update_erfahrungswerte_on_completion",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "update_erfahrungswerte": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "updateErfahrungswerte",
+            "args": {
+              "projectId": "${ .trigger.entity_id }",
+              "oldStatus": "${ .trigger.old_data.status }",
+              "newStatus": "${ .trigger.data.status }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Erfahrungswerte aktualisieren",
+            "description": "Lernt aus abgeschlossenem Projekt"
+          }
+        }
+      }
+    ]
+  }
+}

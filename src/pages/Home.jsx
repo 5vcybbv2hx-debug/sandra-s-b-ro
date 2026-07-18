@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, Phone, Plus, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Phone, Plus, TrendingUp, GraduationCap } from 'lucide-react';
 import Morgenroutine from '@/components/Morgenroutine';
 import { formatCurrency, todayISO, currentMonth } from '@/lib/format';
 import { getWeeklyCapacity, getDefaultStundensatz, getDefaultSteuerProzent, getMonthlyUmsatzziel } from '@/lib/settings';
@@ -32,7 +32,7 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const [aufgaben, notizen, projekte, firmen, zeiten, phasen, kap] = await Promise.all([
+      const [aufgaben, notizen, projekte, firmen, zeiten, phasen, kap, erf] = await Promise.all([
         base44.entities.Aufgabe.filter({ erledigt: false }),
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
         base44.entities.Projekt.filter({ status: 'Aktiv' }, '-deadline', 50),
@@ -40,6 +40,7 @@ export default function Home() {
         base44.entities.Zeiteintrag.list('-datum', 500),
         base44.entities.Projektphase.list('-updated_date', 500),
         base44.entities.Kapazitaetseinstellung.list(),
+        base44.entities.Phasen_Erfahrungswerte.list('-projektart', 200),
       ]);
       const focused = aufgaben.filter(t => t.heute_fokussiert);
       const unfocused = aufgaben.filter(t => !t.heute_fokussiert).sort((a, b) => ({ A: 0, B: 1, C: 2 }[a.prioritaet] ?? 3) - ({ A: 0, B: 1, C: 2 }[b.prioritaet] ?? 3));
@@ -55,7 +56,7 @@ export default function Home() {
       const sPct = kap[0]?.steuerrueckstellung_prozent || getDefaultSteuerProzent();
       const mGoal = kap[0]?.monatliches_umsatzziel || getMonthlyUmsatzziel();
       const wGoal = kap[0]?.woechentliche_zielstunden || getWeeklyCapacity();
-      setD({ topTasks, callbacks, projects: projekte.slice(0, 6), firmen, zeiten, phasen, weekHours, wGoal, monthRevenue: monthHours * sRate, steuer: monthHours * sRate * sPct / 100, mGoal, openTasks: aufgaben.length, openCallbacks: callbacks.length, activeProjects: projekte.length });
+      setD({ topTasks, callbacks, projects: projekte.slice(0, 6), firmen, zeiten, phasen, weekHours, wGoal, monthRevenue: monthHours * sRate, steuer: monthHours * sRate * sPct / 100, mGoal, openTasks: aufgaben.length, openCallbacks: callbacks.length, activeProjects: projekte.length, erfahrungswerte: erf });
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
@@ -124,6 +125,18 @@ export default function Home() {
         </div>
         <div className="mt-3"><div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Monatsziel</span><span>{formatCurrency(d.monthRevenue)} / {formatCurrency(d.mGoal)}</span></div><Progress value={Math.min(100, d.mGoal > 0 ? (d.monthRevenue / d.mGoal) * 100 : 0)} className="h-2" /></div>
       </Card>
+
+      {d.erfahrungswerte && d.erfahrungswerte.length > 0 && (
+        <Card className="p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3"><GraduationCap className="w-5 h-5 text-brand" /><h2 className="font-semibold text-lg">Lernfortschritt</h2></div>
+          <div className="grid grid-cols-3 gap-4">
+            <div><p className="text-xs text-muted-foreground">Erfahrungswerte</p><p className="text-lg font-bold text-brand-dark">{d.erfahrungswerte.length}</p></div>
+            <div><p className="text-xs text-muted-foreground">Projektarten</p><p className="text-lg font-bold text-brand-dark">{new Set(d.erfahrungswerte.map(e => e.projektart)).size}</p></div>
+            <div><p className="text-xs text-muted-foreground">ø Vertrauen</p><p className="text-lg font-bold text-brand-dark">{(d.erfahrungswerte.reduce((s, e) => s + (e.vertrauens_score || 0), 0) / d.erfahrungswerte.length * 100).toFixed(0)}%</p></div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">Je mehr Projekte du abschließt, desto präziser werden die Schätzvorschläge. ↗</p>
+        </Card>
+      )}
     </div>
   );
 }

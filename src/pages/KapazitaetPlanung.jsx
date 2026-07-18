@@ -10,6 +10,13 @@ import { getDefaultStundensatz, getDefaultSteuerProzent, saveSettings } from '@/
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+const trustInfo = (score) => {
+  if (score <= 0.3) return { label: 'Tendenz', dot: 'bg-amber-400', text: 'text-amber-600', bg: 'bg-amber-50' };
+  if (score <= 0.6) return { label: 'Richtwert', dot: 'bg-blue-400', text: 'text-blue-600', bg: 'bg-blue-50' };
+  if (score <= 0.85) return { label: 'verlässlich', dot: 'bg-brand', text: 'text-brand-dark', bg: 'bg-brand-light' };
+  return { label: 'bestätigt', dot: 'bg-green-500', text: 'text-green-600', bg: 'bg-green-50' };
+};
+
 export default function KapazitaetPlanung() {
   const [config, setConfig] = useState(null);
   const [weeklyHours, setWeeklyHours] = useState(25);
@@ -100,10 +107,52 @@ export default function KapazitaetPlanung() {
         {utilization < 60 && utilization > 0 && <div className="flex items-center gap-2 p-3 bg-brand-light rounded-xl"><p className="text-sm font-medium text-brand-dark">Noch {freeCapacity.toFixed(1)}h Kapazität frei — neue Aufträge akquirieren?</p></div>}
       </Card>
 
-      {Object.keys(byArt).length > 0 && (
+      {erfahrungswerte.length > 0 && (
         <Card className="p-5 shadow-sm">
-          <h2 className="font-semibold mb-3">Erfahrungswerte</h2>
-          <div className="space-y-2">{Object.entries(byArt).map(([art, data]) => <div key={art} className="flex items-center justify-between p-3 bg-cardbg rounded-xl min-h-[48px]"><div><p className="font-medium">{art}</p><p className="text-xs text-muted-foreground">Basierend auf {data.count} Projekten</p></div><p className="font-bold text-brand-dark">{data.total.toFixed(1)} h</p></div>)}</div>
+          <h2 className="font-semibold mb-1">Erfahrungswerte nach Phase</h2>
+          <p className="text-xs text-muted-foreground mb-4">Automatisch aus abgeschlossenen Projekten gelernt</p>
+          <div className="space-y-4">
+            {Object.entries(
+              erfahrungswerte.reduce((acc, e) => {
+                if (!acc[e.projektart]) acc[e.projektart] = [];
+                acc[e.projektart].push(e);
+                return acc;
+              }, {})
+            ).map(([art, phases]) => (
+              <div key={art}>
+                <p className="text-sm font-medium text-muted-foreground mb-2">{art}</p>
+                <div className="space-y-2">
+                  {phases.map(e => {
+                    const trust = trustInfo(e.vertrauens_score || 0);
+                    const hasRange = (e.min_stunden || 0) > 0 && (e.max_stunden || 0) > 0 && e.min_stunden !== e.max_stunden;
+                    return (
+                      <div key={e.id} className="p-3 bg-cardbg rounded-xl min-h-[48px]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{e.phase}</span>
+                            <span className={cn('inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full', trust.bg, trust.text)}>
+                              <span className={cn('w-1.5 h-1.5 rounded-full', trust.dot)} />
+                              {trust.label}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-brand-dark">{(e.durchschnitt_stunden || 0).toFixed(1)} h</p>
+                            {hasRange && <p className="text-[10px] text-muted-foreground">{(e.min_stunden || 0).toFixed(0)}–{(e.max_stunden || 0).toFixed(0)} h</p>}
+                          </div>
+                        </div>
+                        {(e.vertrauens_score || 0) <= 0.3 && (
+                          <p className="text-[10px] text-amber-600 mt-1.5">⚠ Basierend auf wenigen Projekten — Schätzung mit Vorsicht verwenden.</p>
+                        )}
+                        {(e.vertrauens_score || 0) >= 0.85 && (
+                          <p className="text-[10px] text-green-600 mt-1.5">✓ Aus {e.anzahl_projekte} Projekten gelernt — verlässlicher Richtwert.</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
 

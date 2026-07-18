@@ -34,6 +34,11 @@
       "type": "number",
       "title": "Anzahl Projekte",
       "default": 0
+    },
+    "vertrauens_score": {
+      "type": "number",
+      "title": "Vertrauens-Score",
+      "default": 0
     }
   },
   "required": [
