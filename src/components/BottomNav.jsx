@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Users, Wallet, Settings } from 'lucide-react';
+import { Home, FolderKanban, Phone, Calendar, Euro, BarChart3, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -8,15 +8,15 @@ export default function BottomNav() {
   const isAdmin = user?.role === 'admin';
   const items = isAdmin ? [
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
-    { to: '/kontakte', label: 'Kontakte', icon: Users },
+    { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
+    { to: '/kapazitaet', label: 'Kapazität', icon: BarChart3 },
     { to: '/telefon', label: 'Telefon', icon: Phone },
-    { to: '/finanzen', label: 'Finanzen', icon: Wallet },
-    { to: '/einstellungen', label: 'Einst.', icon: Settings },
+    { to: '/einstellungen', label: 'Einstell.', icon: Settings },
   ] : [
     { to: '/', label: 'Heute', icon: Home },
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
-    { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
-    { to: '/kontakte', label: 'Kontakte', icon: Users },
+    { to: '/wochenuebersicht', label: 'Woche', icon: Calendar },
+    { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
     { to: '/telefon', label: 'Telefon', icon: Phone },
   ];
   return (

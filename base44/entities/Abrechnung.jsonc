@@ -1,0 +1,88 @@
+{
+  "name": "Abrechnung",
+  "type": "object",
+  "properties": {
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "monat": {
+      "type": "string",
+      "title": "Monat"
+    },
+    "von_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Von"
+    },
+    "bis_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Bis"
+    },
+    "stunden_gesamt": {
+      "type": "number",
+      "title": "Stunden Gesamt",
+      "default": 0
+    },
+    "stundensatz": {
+      "type": "number",
+      "title": "Stundensatz",
+      "default": 0
+    },
+    "betrag_netto": {
+      "type": "number",
+      "title": "Betrag Netto",
+      "default": 0
+    },
+    "betrag_brutto": {
+      "type": "number",
+      "title": "Betrag Brutto",
+      "default": 0
+    },
+    "mwst": {
+      "type": "number",
+      "title": "MwSt",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Entwurf",
+        "Versendet",
+        "Bezahlt"
+      ],
+      "default": "Entwurf"
+    },
+    "versendet_am": {
+      "type": "string",
+      "format": "date",
+      "title": "Versendet am"
+    },
+    "bezahlt_am": {
+      "type": "string",
+      "format": "date",
+      "title": "Bezahlt am"
+    },
+    "rechnungsnummer": {
+      "type": "string",
+      "title": "Rechnungsnummer"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "zeiteintrag_ids": {
+      "type": "array",
+      "title": "Zeiteintr\u00e4ge",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "projekt_id"
+  ]
+}

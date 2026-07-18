@@ -20,11 +20,12 @@
       "type": "string",
       "title": "Status",
       "enum": [
+        "Geplant",
         "Offen",
         "Aktiv",
         "Abgeschlossen"
       ],
-      "default": "Offen"
+      "default": "Geplant"
     },
     "startdatum": {
       "type": "string",

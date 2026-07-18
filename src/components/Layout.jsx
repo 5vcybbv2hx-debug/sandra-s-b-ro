@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import TimerBanner from './TimerBanner';
 import QuickCaptureFAB from './QuickCaptureFAB';
+import FeierabendFAB from './FeierabendFAB';
 
 export default function Layout() {
   return (
@@ -17,6 +18,7 @@ export default function Layout() {
       </div>
       <BottomNav />
       <QuickCaptureFAB />
+      <FeierabendFAB />
       <Toaster position="top-center" richColors />
     </div>
   );

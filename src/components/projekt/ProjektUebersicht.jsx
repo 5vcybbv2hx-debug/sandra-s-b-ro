@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 const PHASEN = ['Entwurf', 'Baugesuch', 'Werkplanung'];
-const PROJEKTARTEN = ['Grundriss', 'Schnitt', 'Genehmigungsplanung', 'Ausführungsplanung', 'Werkplanung', 'Bestandsaufnahme', 'Sonstiges'];
+const PROJEKTARTEN = ['Wohnbau', 'Gewerbebau', 'Öffentliches Bauvorhaben', 'Umbau/Sanierung', 'Sonstiges'];
 
 export default function ProjektUebersicht({ projekt, onUpdate }) {
   const [form, setForm] = useState({ ...projekt });

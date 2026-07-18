@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock } from 'lucide-react';
+import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, Euro, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -8,18 +8,23 @@ export default function Sidebar() {
   const isAdmin = user?.role === 'admin';
   const items = isAdmin ? [
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
+    { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
+    { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
+    { to: '/telefon', label: 'Telefonnotizen', icon: Phone },
     { to: '/kontakte', label: 'Kontakte', icon: Users },
     { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
-    { to: '/telefon', label: 'Telefon-Journal', icon: Phone },
     { to: '/finanzen', label: 'Finanzen', icon: Wallet },
     { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
   ] : [
     { to: '/', label: 'Heute', icon: Home },
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
+    { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
+    { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
+    { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
+    { to: '/telefon', label: 'Telefonnotizen', icon: Phone },
     { to: '/kontakte', label: 'Kontakte', icon: Users },
     { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
     { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
-    { to: '/telefon', label: 'Telefon-Journal', icon: Phone },
     { to: '/finanzen', label: 'Finanzen', icon: Wallet },
   ];
   return (

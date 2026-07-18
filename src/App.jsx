@@ -20,6 +20,10 @@ import Kontakte from '@/pages/Kontakte';
 import FirmenDetail from '@/pages/FirmenDetail';
 import PersonDetail from '@/pages/PersonDetail';
 import Zeiten from '@/pages/Zeiten';
+import Wochenuebersicht from '@/pages/Wochenuebersicht';
+import Abrechnung from '@/pages/Abrechnung';
+import AbrechnungDetail from '@/pages/AbrechnungDetail';
+import KapazitaetPlanung from '@/pages/KapazitaetPlanung';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +64,10 @@ const AuthenticatedApp = () => {
           <Route path="/aufgaben" element={<Aufgaben />} />
           <Route path="/finanzen" element={<Finanzen />} />
           <Route path="/einstellungen" element={<Einstellungen />} />
+          <Route path="/wochenuebersicht" element={<Wochenuebersicht />} />
+          <Route path="/abrechnung" element={<Abrechnung />} />
+          <Route path="/abrechnung/:id" element={<AbrechnungDetail />} />
+          <Route path="/kapazitaet" element={<KapazitaetPlanung />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

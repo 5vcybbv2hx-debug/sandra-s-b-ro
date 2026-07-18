@@ -1,0 +1,57 @@
+{
+  "name": "FeierabendCheck",
+  "type": "object",
+  "properties": {
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Datum"
+    },
+    "aufgaben_dokumentiert": {
+      "type": "boolean",
+      "title": "Aufgaben dokumentiert",
+      "default": false
+    },
+    "timer_gestoppt": {
+      "type": "boolean",
+      "title": "Timer gestoppt",
+      "default": false
+    },
+    "telefonnotizen_vollstaendig": {
+      "type": "boolean",
+      "title": "Telefonnotizen vollst\u00e4ndig",
+      "default": false
+    },
+    "morgen_geplant": {
+      "type": "boolean",
+      "title": "Morgen geplant",
+      "default": false
+    },
+    "arbeitsplatz_aufgeraeumt": {
+      "type": "boolean",
+      "title": "Arbeitsplatz aufger\u00e4umt",
+      "default": false
+    },
+    "notiz": {
+      "type": "string",
+      "title": "Notiz"
+    },
+    "stunden_heute": {
+      "type": "number",
+      "title": "Stunden heute",
+      "default": 0
+    },
+    "bewertung": {
+      "type": "string",
+      "title": "Bewertung",
+      "enum": [
+        "erledigt",
+        "offen"
+      ],
+      "default": "offen"
+    }
+  },
+  "required": [
+    "datum"
+  ]
+}

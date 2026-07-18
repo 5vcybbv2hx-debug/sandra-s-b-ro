@@ -31,12 +31,10 @@
       "type": "string",
       "title": "Projektart",
       "enum": [
-        "Grundriss",
-        "Schnitt",
-        "Genehmigungsplanung",
-        "Ausf\u00fchrungsplanung",
-        "Werkplanung",
-        "Bestandsaufnahme",
+        "Wohnbau",
+        "Gewerbebau",
+        "\u00d6ffentliches Bauvorhaben",
+        "Umbau/Sanierung",
         "Sonstiges"
       ],
       "default": "Sonstiges"
@@ -49,6 +47,7 @@
         "Aktiv",
         "Wartend",
         "Abgeschlossen",
+        "Abgebrochen",
         "Archiviert"
       ],
       "default": "Anfrage"

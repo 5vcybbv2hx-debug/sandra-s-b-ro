@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Clock, LayoutGrid, List } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
-import NeuesProjektModal from '@/components/projekt/NeuesProjektModal';
+import ProjektStartWizard from '@/components/projekt/ProjektStartWizard';
 import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
@@ -85,7 +85,7 @@ export default function Projekte() {
         {loading ? <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 bg-cardbg rounded-2xl animate-pulse" />)}</div> : <div className="grid gap-3">{filtered.map((p) => <ProjektCard key={p.id} projekt={p} />)}{filtered.length === 0 && <p className="text-muted-foreground text-center py-12">Keine Projekte gefunden.</p>}</div>}
       </>)}
       {view === 'kanban' && (<div className="flex gap-4 overflow-x-auto pb-4">{PHASEN.map((phase) => { const phaseProjekte = filtered.filter((p) => (p.aktuelle_phase || 'Entwurf') === phase); return (<div key={phase} className="min-w-[280px] flex-1"><div className="flex items-center justify-between mb-3 px-1"><h3 className="font-semibold">{phase}</h3><span className="text-sm text-muted-foreground bg-cardbg px-2 py-0.5 rounded-full">{phaseProjekte.length}</span></div><div className="space-y-3">{phaseProjekte.map((p) => <ProjektCard key={p.id} projekt={p} />)}{phaseProjekte.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">Keine Projekte</p>}</div></div>); })}</div>)}
-      {showNew && <NeuesProjektModal onClose={() => setShowNew(false)} onCreated={loadProjekte} />}
+      {showNew && <ProjektStartWizard onClose={() => setShowNew(false)} onCreated={loadProjekte} />}
     </div>
   );
 }
