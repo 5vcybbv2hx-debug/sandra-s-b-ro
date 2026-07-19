@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ function getMonthGrid(year, month) {
 }
 
 export default function Kalender() {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('week');
   const [weekStart, setWeekStart] = useState(getMonday(new Date()));
   const [monthCursor, setMonthCursor] = useState({ year: new Date().getFullYear(), month: new Date().getMonth() });
@@ -128,6 +130,15 @@ export default function Kalender() {
     setSelectedEvent(event);
     setDialogMode(event.source === 'outlook' ? 'view' : 'edit');
     setDialogOpen(true);
+  };
+
+  const goToProject = (e, projectId) => {
+    e.stopPropagation();
+    navigate(`/projekte/${projectId}`);
+  };
+  const goToTasks = (e) => {
+    e.stopPropagation();
+    navigate('/aufgaben');
   };
 
   const weekDays = getWeekDays(weekStart);
@@ -218,10 +229,10 @@ export default function Kalender() {
                         {(tMarkers.length > 0 || dMarkers.length > 0) && (
                           <div className="flex flex-wrap gap-0.5">
                             {dMarkers.map(p => (
-                              <span key={p.id} className="text-[9px] bg-accent-light text-accent px-1 rounded truncate max-w-[80px]" title={`Deadline: ${p.projekt_name}`}>◆ {p.projekt_name}</span>
+                              <span key={p.id} onClick={(ev) => goToProject(ev, p.id)} className="text-[9px] bg-accent-light text-accent px-1 rounded truncate max-w-[80px] cursor-pointer hover:underline" title={`Deadline: ${p.projekt_name} — klick zum Öffnen`}>◆ {p.projekt_name}</span>
                             ))}
                             {tMarkers.map(t => (
-                              <span key={t.id} className="text-[9px] bg-orange-50 text-orange-600 px-1 rounded">●{t.prioritaet}</span>
+                              <span key={t.id} onClick={goToTasks} className="text-[9px] bg-orange-50 text-orange-600 px-1 rounded cursor-pointer hover:underline" title={`Aufgabe: ${t.titel} — klick zum Öffnen`}>●{t.prioritaet}</span>
                             ))}
                           </div>
                         )}
@@ -337,10 +348,10 @@ export default function Kalender() {
                         {(tMarkers.length > 0 || dMarkers.length > 0) && (
                           <div className="flex gap-0.5 pt-0.5">
                             {dMarkers.map(p => (
-                              <span key={p.id} className="text-[8px] text-accent" title={`Deadline: ${p.projekt_name}`}>◆</span>
+                              <span key={p.id} onClick={(ev) => goToProject(ev, p.id)} className="text-[8px] text-accent cursor-pointer hover:underline" title={`Deadline: ${p.projekt_name} — klick zum Öffnen`}>◆</span>
                             ))}
                             {tMarkers.map(t => (
-                              <span key={t.id} className="text-[8px] text-orange-600" title={`Aufgabe: ${t.titel}`}>●</span>
+                              <span key={t.id} onClick={goToTasks} className="text-[8px] text-orange-600 cursor-pointer hover:underline" title={`Aufgabe: ${t.titel} — klick zum Öffnen`}>●</span>
                             ))}
                           </div>
                         )}
@@ -379,10 +390,10 @@ export default function Kalender() {
                       return (
                         <>
                           {dMarkers.map(p => (
-                            <div key={p.id} className="flex items-center gap-2 p-2 rounded-md bg-accent-light/50">
+                            <div key={p.id} onClick={(e) => goToProject(e, p.id)} className="flex items-center gap-2 p-2 rounded-md bg-accent-light/50 cursor-pointer hover:bg-accent-light transition-colors">
                               <span className="text-accent">◆</span>
                               <span className="text-sm font-medium">{p.projekt_name}</span>
-                              <span className="text-xs text-muted-foreground">Deadline</span>
+                              <span className="text-xs text-muted-foreground">Deadline — klick zum Öffnen</span>
                             </div>
                           ))}
                           {allDay.map(e => (
@@ -399,10 +410,10 @@ export default function Kalender() {
                             </div>
                           ))}
                           {tMarkers.map(t => (
-                            <div key={t.id} className="flex items-center gap-2 p-2 rounded-md bg-orange-50/50">
+                            <div key={t.id} onClick={goToTasks} className="flex items-center gap-2 p-2 rounded-md bg-orange-50/50 cursor-pointer hover:bg-orange-50 transition-colors">
                               <span className="text-orange-600 text-xs">●</span>
                               <span className="text-sm">{t.titel}</span>
-                              <span className="text-xs text-muted-foreground">Aufgabe</span>
+                              <span className="text-xs text-muted-foreground">Aufgabe — klick zum Öffnen</span>
                             </div>
                           ))}
                         </>
@@ -419,8 +430,8 @@ export default function Kalender() {
       <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-50 border border-blue-200" /> Outlook</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-brand-light border border-brand" /> App-Termin</span>
-        <span className="flex items-center gap-1"><span className="text-accent">◆</span> Deadline</span>
-        <span className="flex items-center gap-1"><span className="text-orange-600">●</span> Aufgabe</span>
+        <span className="flex items-center gap-1"><span className="text-accent">◆</span> Deadline (klickbar)</span>
+        <span className="flex items-center gap-1"><span className="text-orange-600">●</span> Aufgabe (klickbar)</span>
       </div>
 
       <TerminDialog open={dialogOpen} onOpenChange={setDialogOpen} mode={dialogMode} event={selectedEvent} projekte={projects} onSaved={loadData} />
