@@ -1,0 +1,89 @@
+{
+  "name": "KalenderEvent",
+  "type": "object",
+  "properties": {
+    "outlook_id": {
+      "type": "string",
+      "title": "Outlook ID"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Betreff"
+    },
+    "body_preview": {
+      "type": "string",
+      "title": "Beschreibung Vorschau"
+    },
+    "start_datetime": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Start"
+    },
+    "end_datetime": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Ende"
+    },
+    "is_all_day": {
+      "type": "boolean",
+      "title": "Ganzt\u00e4gig",
+      "default": false
+    },
+    "location": {
+      "type": "string",
+      "title": "Ort"
+    },
+    "attendees": {
+      "type": "array",
+      "title": "Teilnehmer",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source": {
+      "type": "string",
+      "title": "Quelle",
+      "enum": [
+        "outlook",
+        "app"
+      ],
+      "default": "app"
+    },
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "aufgabe_id": {
+      "type": "string",
+      "reference": "Aufgabe",
+      "title": "Aufgabe"
+    },
+    "sync_status": {
+      "type": "string",
+      "title": "Sync Status",
+      "enum": [
+        "synced",
+        "pending",
+        "error",
+        "deleted_outlook"
+      ],
+      "default": "pending"
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Letzte Synchronisation"
+    },
+    "outlook_change_key": {
+      "type": "string",
+      "title": "Outlook Change Key"
+    }
+  },
+  "required": [
+    "subject",
+    "start_datetime",
+    "end_datetime",
+    "source"
+  ]
+}
