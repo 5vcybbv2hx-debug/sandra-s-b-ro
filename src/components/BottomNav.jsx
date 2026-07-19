@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, Calendar, Euro, BarChart3, Settings } from 'lucide-react';
+import { Home, FolderKanban, Phone, Calendar, CalendarDays, Euro, BarChart3, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ export default function BottomNav() {
     { to: '/', label: 'Heute', icon: Home },
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
     { to: '/wochenuebersicht', label: 'Woche', icon: Calendar },
+    { to: '/kalender', label: 'Kalender', icon: CalendarDays },
     { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
     { to: '/telefon', label: 'Telefon', icon: Phone },
   ];

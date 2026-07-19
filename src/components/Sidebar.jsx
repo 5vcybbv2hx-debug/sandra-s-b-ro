@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, Euro, BarChart3 } from 'lucide-react';
+import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,7 @@ export default function Sidebar() {
     { to: '/', label: 'Heute', icon: Home },
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
     { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
+    { to: '/kalender', label: 'Kalender', icon: CalendarDays },
     { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
     { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
     { to: '/telefon', label: 'Telefonnotizen', icon: Phone },

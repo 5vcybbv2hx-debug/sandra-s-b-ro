@@ -24,6 +24,7 @@ import Wochenuebersicht from '@/pages/Wochenuebersicht';
 import Abrechnung from '@/pages/Abrechnung';
 import AbrechnungDetail from '@/pages/AbrechnungDetail';
 import KapazitaetPlanung from '@/pages/KapazitaetPlanung';
+import Kalender from '@/pages/Kalender';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
           <Route path="/abrechnung" element={<Abrechnung />} />
           <Route path="/abrechnung/:id" element={<AbrechnungDetail />} />
           <Route path="/kapazitaet" element={<KapazitaetPlanung />} />
+          <Route path="/kalender" element={<Kalender />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

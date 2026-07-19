@@ -5,13 +5,17 @@ import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, Phone, Plus, TrendingUp, GraduationCap } from 'lucide-react';
+import { CheckCircle2, Phone, Plus, TrendingUp, GraduationCap, CalendarClock } from 'lucide-react';
 import Morgenroutine from '@/components/Morgenroutine';
 import { formatCurrency, todayISO, currentMonth } from '@/lib/format';
 import { getWeeklyCapacity, getDefaultStundensatz, getDefaultSteuerProzent, getMonthlyUmsatzziel } from '@/lib/settings';
 import { cn } from '@/lib/utils';
 
 const prioBadge = { A: 'bg-red-50 text-red-600', B: 'bg-orange-50 text-orange-600', C: 'bg-gray-100 text-gray-500' };
+
+function isSameDayLocal(a, b) {
+  return a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+}
 
 export default function Home() {
   const { user } = useAuth();
@@ -32,7 +36,7 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const [aufgaben, notizen, projekte, firmen, zeiten, phasen, kap, erf] = await Promise.all([
+      const [aufgaben, notizen, projekte, firmen, zeiten, phasen, kap, erf, kalEvents] = await Promise.all([
         base44.entities.Aufgabe.filter({ erledigt: false }),
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
         base44.entities.Projekt.filter({ status: 'Aktiv' }, '-deadline', 50),
@@ -41,6 +45,7 @@ export default function Home() {
         base44.entities.Projektphase.list('-updated_date', 500),
         base44.entities.Kapazitaetseinstellung.list(),
         base44.entities.Phasen_Erfahrungswerte.list('-projektart', 200),
+        base44.entities.KalenderEvent.list('-start_datetime', 200),
       ]);
       const focused = aufgaben.filter(t => t.heute_fokussiert);
       const unfocused = aufgaben.filter(t => !t.heute_fokussiert).sort((a, b) => ({ A: 0, B: 1, C: 2 }[a.prioritaet] ?? 3) - ({ A: 0, B: 1, C: 2 }[b.prioritaet] ?? 3));
@@ -56,7 +61,7 @@ export default function Home() {
       const sPct = kap[0]?.steuerrueckstellung_prozent || getDefaultSteuerProzent();
       const mGoal = kap[0]?.monatliches_umsatzziel || getMonthlyUmsatzziel();
       const wGoal = kap[0]?.woechentliche_zielstunden || getWeeklyCapacity();
-      setD({ topTasks, callbacks, projects: projekte.slice(0, 6), firmen, zeiten, phasen, weekHours, wGoal, monthRevenue: monthHours * sRate, steuer: monthHours * sRate * sPct / 100, mGoal, openTasks: aufgaben.length, openCallbacks: callbacks.length, activeProjects: projekte.length, erfahrungswerte: erf });
+      setD({ topTasks, callbacks, projects: projekte.slice(0, 6), firmen, zeiten, phasen, weekHours, wGoal, monthRevenue: monthHours * sRate, steuer: monthHours * sRate * sPct / 100, mGoal, openTasks: aufgaben.length, openCallbacks: callbacks.length, activeProjects: projekte.length, erfahrungswerte: erf, kalenderEvents: kalEvents });
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
@@ -105,6 +110,27 @@ export default function Home() {
             </div>
           ))}</div>
         )}
+      </Card>
+
+      <Card className="p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2"><CalendarClock className="w-5 h-5 text-brand" /><h2 className="font-semibold text-lg">Heute im Kalender</h2></div>
+          <Link to="/kalender" className="text-sm text-brand hover:underline">Zum Kalender</Link>
+        </div>
+        {(() => {
+          const today = new Date();
+          const todayEvts = (d.kalenderEvents || []).filter(e => e.start_datetime && e.sync_status !== 'deleted_outlook' && isSameDayLocal(new Date(e.start_datetime), today)).sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
+          if (todayEvts.length === 0) return <p className="text-center py-3 text-muted-foreground text-sm">Heute keine Termine</p>;
+          return (
+            <div className="space-y-2">{todayEvts.map(e => (
+              <Link key={e.id} to="/kalender" className={cn('flex items-center gap-3 p-3 rounded-xl min-h-[48px]', e.source === 'outlook' ? 'bg-blue-50' : 'bg-brand-light')}>
+                <CalendarClock className={cn('w-4 h-4 shrink-0', e.source === 'outlook' ? 'text-blue-500' : 'text-brand')} />
+                <div className="flex-1 min-w-0"><p className="font-medium truncate">{e.subject}</p>{e.location && <p className="text-xs text-muted-foreground truncate">{e.location}</p>}</div>
+                <span className="text-xs text-muted-foreground shrink-0">{e.is_all_day ? 'ganztägig' : new Date(e.start_datetime).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
+              </Link>
+            ))}</div>
+          );
+        })()}
       </Card>
 
       <Card className="p-5 shadow-sm">
