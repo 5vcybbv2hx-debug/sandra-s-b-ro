@@ -79,7 +79,7 @@ export default function KapazitaetPlanung() {
       <div>
         <h2 className="font-semibold mb-3">Mein Übergangs-Planer</h2>
         <div className="grid md:grid-cols-3 gap-4">
-          <Card className="p-5 shadow-sm"><p className="text-sm text-muted-foreground mb-2">Stunden pro Woche</p><p className="text-3xl font-bold text-brand-dark mb-3">{weeklyHours} h</p><Slider value={[weeklyHours]} onValueChange={v => setWeeklyHours(v[0])} min={5} max={40} step={1} /></Card>
+          <Card className="p-5 shadow-sm"><p className="text-sm text-muted-foreground mb-2">Stunden pro Woche</p><p className="text-3xl font-bold text-brand-dark mb-3">{weeklyHours} h</p><Slider value={[weeklyHours]} onValueChange={v => setWeeklyHours(v[0])} min={5} max={60} step={1} /></Card>
           <Card className="p-5 shadow-sm"><p className="text-sm text-muted-foreground mb-2">Stundensatz</p><div className="flex items-baseline gap-1 mb-3"><Input type="number" value={stundensatz} onChange={e => setStundensatz(e.target.value)} className="text-2xl font-bold border-0 p-0 h-auto bg-transparent focus-visible:ring-0" /><span className="text-muted-foreground">€/h</span></div></Card>
           <Card className="p-5 shadow-sm"><p className="text-sm text-muted-foreground mb-2">Urlaub/Krank (Wochen/Jahr)</p><p className="text-3xl font-bold text-brand-dark mb-3">{urlaub}</p><Slider value={[urlaub]} onValueChange={v => setUrlaub(v[0])} min={0} max={10} step={1} /></Card>
         </div>
