@@ -10,6 +10,7 @@ import ProjektZeiten from '@/components/projekt/ProjektZeiten';
 import ProjektAufgaben from '@/components/projekt/ProjektAufgaben';
 import ProjektTelefonate from '@/components/projekt/ProjektTelefonate';
 import ProjektAbrechnung from '@/components/projekt/ProjektAbrechnung';
+import ProjektDokumente from '@/components/projekt/ProjektDokumente';
 import StatusBadge from '@/components/StatusBadge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -74,13 +75,14 @@ export default function ProjektDetail() {
       </Card>
 
       <Tabs defaultValue="phasen" className="w-full">
-        <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-4 h-12">
+        <TabsList className="grid grid-cols-4 md:grid-cols-7 mb-4 h-auto md:h-12">
           <TabsTrigger value="phasen" className="min-h-[40px] text-xs">Phasen</TabsTrigger>
           <TabsTrigger value="uebersicht" className="min-h-[40px] text-xs">Übersicht</TabsTrigger>
           <TabsTrigger value="zeit" className="min-h-[40px] text-xs">Zeit</TabsTrigger>
           <TabsTrigger value="aufgaben" className="min-h-[40px] text-xs">Aufgaben</TabsTrigger>
           <TabsTrigger value="telefon" className="min-h-[40px] text-xs">Telefon</TabsTrigger>
           <TabsTrigger value="abrechnung" className="min-h-[40px] text-xs">Abrechnung</TabsTrigger>
+          <TabsTrigger value="dokumente" className="min-h-[40px] text-xs">Dokumente</TabsTrigger>
         </TabsList>
         <TabsContent value="phasen"><ProjektPhasen projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
         <TabsContent value="uebersicht"><ProjektUebersicht projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
@@ -88,6 +90,7 @@ export default function ProjektDetail() {
         <TabsContent value="aufgaben"><ProjektAufgaben projekt={projekt} /></TabsContent>
         <TabsContent value="telefon"><ProjektTelefonate projekt={projekt} /></TabsContent>
         <TabsContent value="abrechnung"><ProjektAbrechnung projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
+        <TabsContent value="dokumente"><ProjektDokumente projekt={projekt} firma={firma} /></TabsContent>
       </Tabs>
     </div>
   );
