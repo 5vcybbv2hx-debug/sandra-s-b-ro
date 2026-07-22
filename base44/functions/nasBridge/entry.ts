@@ -6,12 +6,10 @@ if (typeof process !== 'undefined') {
 }
 
 Deno.serve(async (req) => {
-  // We can create the base44 client to authenticate or authorize if needed
-  // Note: Since this is called by Base44 automations/apps, we can just use createClientFromRequest(req)
   try {
     const base44 = createClientFromRequest(req);
   } catch (e) {
-    // If auth client creation fails, we can either ignore or handle it, but it's good to call it
+    // If auth client creation fails, we can either ignore or handle it
   }
   
   // Parse body
@@ -48,8 +46,8 @@ Deno.serve(async (req) => {
   // Sanitize path segments
   const sanitizePathSegment = (segment: string): string => {
     return (segment || '')
-      .replace(/^\/+|\/+$/g, '') // remove leading/trailing slashes
-      .replace(/\.\.+/g, '')     // prevent path traversal
+      .replace(/^\/+|\/+$/g, '')
+      .replace(/\.\.+/g, '')
       .trim();
   };
 
@@ -60,7 +58,7 @@ Deno.serve(async (req) => {
     return Response.json({ success: false, error: 'Firma oder Projekt Name ist ungueltig nach Bereinigung.' }, { status: 400 });
   }
 
-  const folderPath = `/Kunde/${cleanFirma}/${cleanProjekt}`;
+  const folderPath = `/Bautechnik Hugendubel/0_Kunden/${cleanFirma}/${cleanProjekt}`;
 
   let baseUrl = NAS_URL;
   if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
@@ -101,8 +99,9 @@ Deno.serve(async (req) => {
     }
   };
 
-  let authPath = 'auth.cgi';
+  let authPath = 'entry.cgi';
   let sid: string | null = null;
+  let baseUrlForLogout = baseUrl;
 
   try {
     // Step 1: Query API Info
@@ -115,7 +114,6 @@ Deno.serve(async (req) => {
       }
       infoJson = await infoRes.json();
     } catch (err) {
-      // NAS is unreachable
       return Response.json({
         success: false,
         error: 'NAS nicht erreichbar. Port-Forwarding pruefen.',
@@ -128,13 +126,28 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: `Fehler bei API-Abfrage auf dem NAS: ${JSON.stringify(infoJson.error || infoJson)}` }, { status: 502 });
     }
 
-    authPath = infoJson.data?.['SYNO.API.Auth']?.path || 'auth.cgi';
+    authPath = infoJson.data?.['SYNO.API.Auth']?.path || 'entry.cgi';
+    const authMaxVersion = infoJson.data?.['SYNO.API.Auth']?.maxVersion || 6;
 
-    // Step 2: Login
+    // Step 2: Login — use POST with version 6+ for DSM 7 compatibility
     let loginJson: any;
     try {
-      const loginUrl = `${baseUrl}/webapi/${authPath}?api=SYNO.API.Auth&method=Login&version=3&account=${encodeURIComponent(NAS_USER)}&passwd=${encodeURIComponent(NAS_PASSWORD)}&session=FileStation&format=sid`;
-      const loginRes = await fetchWithTimeout(loginUrl, {}, 10000);
+      const loginUrl = `${baseUrl}/webapi/${authPath}`;
+      const loginBody = new URLSearchParams();
+      loginBody.append('api', 'SYNO.API.Auth');
+      loginBody.append('method', 'Login');
+      loginBody.append('version', String(Math.min(authMaxVersion, 6)));
+      loginBody.append('account', NAS_USER);
+      loginBody.append('passwd', NAS_PASSWORD);
+      loginBody.append('session', 'FileStation');
+      loginBody.append('format', 'sid');
+
+      const loginRes = await fetchWithTimeout(loginUrl, {
+        method: 'POST',
+        body: loginBody,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      }, 10000);
+
       if (!loginRes.ok) {
         throw new Error(`HTTP Status ${loginRes.status}`);
       }
@@ -159,7 +172,7 @@ Deno.serve(async (req) => {
 
     // Step 3: Execute Action
     if (action === 'list') {
-      const listUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.List&method=list&version=2&folder_path=${encodeURIComponent(JSON.stringify([folderPath]))}&additional=${encodeURIComponent(JSON.stringify(['size', 'time']))}&_sid=${sid}`;
+      const listUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.List&method=list&version=2&folder_path=${encodeURIComponent(JSON.stringify(folderPath))}&additional=${encodeURIComponent(JSON.stringify(['size', 'time']))}&_sid=${sid}`;
       const listRes = await fetchWithTimeout(listUrl, {}, 15000);
       const listJson = await listRes.json();
 
@@ -171,7 +184,7 @@ Deno.serve(async (req) => {
           const parentPath = folderPath.substring(0, lastSlash);
           const folderName = folderPath.substring(lastSlash + 1);
 
-          const createUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.CreateFolder&method=create&version=2&folder_path=${encodeURIComponent(JSON.stringify([parentPath]))}&name=${encodeURIComponent(JSON.stringify([folderName]))}&force_parent=true&_sid=${sid}`;
+          const createUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.CreateFolder&method=create&version=2&folder_path=${encodeURIComponent(JSON.stringify(parentPath))}&name=${encodeURIComponent(JSON.stringify(folderName))}&force_parent=true&_sid=${sid}`;
           const createRes = await fetchWithTimeout(createUrl, {}, 15000);
           const createJson = await createRes.json();
 
@@ -206,10 +219,9 @@ Deno.serve(async (req) => {
         const parentPath = folderPath.substring(0, lastSlash);
         const folderName = folderPath.substring(lastSlash + 1);
 
-        const createUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.CreateFolder&method=create&version=2&folder_path=${encodeURIComponent(JSON.stringify([parentPath]))}&name=${encodeURIComponent(JSON.stringify([folderName]))}&force_parent=true&_sid=${sid}`;
+        const createUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.CreateFolder&method=create&version=2&folder_path=${encodeURIComponent(JSON.stringify(parentPath))}&name=${encodeURIComponent(JSON.stringify(folderName))}&force_parent=true&_sid=${sid}`;
         const createRes = await fetchWithTimeout(createUrl, {}, 15000);
         const createJson = await createRes.json();
-        // If error is not 414 (already exists) we don't crash since upload has create_parents=true
       } catch (err) {
         console.log('Ordnervorprüfung fehlgeschlagen, fahre mit Upload fort:', err);
       }
@@ -217,11 +229,9 @@ Deno.serve(async (req) => {
       // Decode base64 to Buffer
       let fileBuffer: Uint8Array;
       try {
-        // Buffer is globally available in modern environments, or we can use standard Base64 decoding in Deno
         if (typeof Buffer !== 'undefined') {
           fileBuffer = Buffer.from(fileBase64, 'base64');
         } else {
-          // Standard Deno fallback for base64 decoding
           const binaryString = atob(fileBase64);
           fileBuffer = new Uint8Array(binaryString.length);
           for (let i = 0; i < binaryString.length; i++) {
@@ -241,7 +251,6 @@ Deno.serve(async (req) => {
       formData.append('file', fileBlob, fileName);
 
       const uploadUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.Upload&method=upload&version=2&_sid=${sid}`;
-      // Use higher timeout for uploads (e.g. 60 seconds)
       const uploadRes = await fetchWithTimeout(uploadUrl, {
         method: 'POST',
         body: formData,
@@ -261,7 +270,7 @@ Deno.serve(async (req) => {
       }
 
       const filePath = `${folderPath}/${sanitizePathSegment(fileName)}`;
-      const shareUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.Sharing&method=create&version=3&path=${encodeURIComponent(JSON.stringify([filePath]))}&_sid=${sid}`;
+      const shareUrl = `${baseUrl}/webapi/entry.cgi?api=SYNO.FileStation.Sharing&method=create&version=3&path=${encodeURIComponent(JSON.stringify(filePath))}&_sid=${sid}`;
       const shareRes = await fetchWithTimeout(shareUrl, {}, 15000);
       const shareJson = await shareRes.json();
 
@@ -287,8 +296,18 @@ Deno.serve(async (req) => {
   } finally {
     if (sid) {
       try {
-        const logoutUrl = `${baseUrl}/webapi/${authPath}?api=SYNO.API.Auth&method=Logout&version=3&session=FileStation&_sid=${sid}`;
-        await fetchWithTimeout(logoutUrl, {}, 5000);
+        const logoutBody = new URLSearchParams();
+        logoutBody.append('api', 'SYNO.API.Auth');
+        logoutBody.append('method', 'Logout');
+        logoutBody.append('version', '6');
+        logoutBody.append('session', 'FileStation');
+        logoutBody.append('_sid', sid);
+
+        await fetchWithTimeout(`${baseUrlForLogout}/webapi/${authPath}`, {
+          method: 'POST',
+          body: logoutBody,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        }, 5000);
       } catch (logoutErr) {
         console.error('Logout failed:', logoutErr);
       }
