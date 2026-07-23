@@ -84,7 +84,7 @@ export default function ProjektDetail() {
           <TabsTrigger value="abrechnung" className="min-h-[40px] text-xs">Abrechnung</TabsTrigger>
           <TabsTrigger value="dokumente" className="min-h-[40px] text-xs">Dokumente</TabsTrigger>
         </TabsList>
-        <TabsContent value="phasen"><ProjektPhasen projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
+        <TabsContent value="phasen"><ProjektPhasen projekt={projekt} firma={firma} onUpdate={loadProjekt} /></TabsContent>
         <TabsContent value="uebersicht"><ProjektUebersicht projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
         <TabsContent value="zeit"><ProjektZeiten projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
         <TabsContent value="aufgaben"><ProjektAufgaben projekt={projekt} /></TabsContent>

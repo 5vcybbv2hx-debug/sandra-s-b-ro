@@ -9,10 +9,11 @@ import { Clock, AlertCircle, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { todayISO, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
+import PhaseDokumente from './PhaseDokumente';
 
 const PHASEN = ['Entwurf', 'Baugesuch', 'Werkplanung'];
 
-export default function ProjektPhasen({ projekt, onUpdate }) {
+export default function ProjektPhasen({ projekt, firma, onUpdate }) {
   const [phasen, setPhasen] = useState([]);
   const [zeiten, setZeiten] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +77,7 @@ export default function ProjektPhasen({ projekt, onUpdate }) {
               </div>
               {geplant > 0 && <div className="w-full bg-cardbg rounded-full h-2 overflow-hidden mt-2"><div className={cn('h-full rounded-full', ist > geplant ? 'bg-red-500' : 'bg-brand')} style={{ width: `${Math.min(100, (ist / geplant) * 100)}%` }} /></div>}
               {ph.enddatum_geplant && ph.status !== 'Abgeschlossen' && <p className={cn('text-xs font-medium mt-2', isOverdue ? 'text-red-600' : daysUntil(ph.enddatum_geplant) <= 7 ? 'text-amber-600' : 'text-muted-foreground')}><Clock className="w-3 h-3 inline mr-1" />{isOverdue ? `${Math.abs(daysUntil(ph.enddatum_geplant))} Tage überfällig` : daysUntil(ph.enddatum_geplant) === 0 ? 'Heute fällig' : `In ${daysUntil(ph.enddatum_geplant)} Tagen`}</p>}
+              <PhaseDokumente phase={ph.phase} projekt={projekt} firma={firma} />
             </Card>
           );
         })}
