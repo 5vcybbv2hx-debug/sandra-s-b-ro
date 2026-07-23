@@ -5,12 +5,9 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Building2, User, Check, CheckCircle2 } from 'lucide-react';
 import ProjektPhasen from '@/components/projekt/ProjektPhasen';
-import ProjektUebersicht from '@/components/projekt/ProjektUebersicht';
-import ProjektZeiten from '@/components/projekt/ProjektZeiten';
-import ProjektAufgaben from '@/components/projekt/ProjektAufgaben';
-import ProjektTelefonate from '@/components/projekt/ProjektTelefonate';
-import ProjektAbrechnung from '@/components/projekt/ProjektAbrechnung';
 import ProjektDokumente from '@/components/projekt/ProjektDokumente';
+import ProjektZeitGeld from '@/components/projekt/ProjektZeitGeld';
+import ProjektAktivitaet from '@/components/projekt/ProjektAktivitaet';
 import StatusBadge from '@/components/StatusBadge';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -53,10 +50,24 @@ export default function ProjektDetail() {
           <h1 className="text-2xl md:text-3xl font-bold">{projekt.projekt_name}</h1>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
             {firma && <Link to={`/firmen/${firma.id}`} className="inline-flex items-center gap-1 text-sm text-brand hover:underline"><Building2 className="w-3.5 h-3.5" /> {firma.name}</Link>}
-            {ansprechpartner && <Link to={`/personen/${ansprechpartner.id}`} className="inline-flex items-center gap-1 text-sm text-accent hover:underline"><User className="w-3.5 h-3.5" /> {ansprechpartner.vorname} {ansprechpartner.nachname}</Link>}
           </div>
         </div>
         <StatusBadge status={projekt.status} />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 text-sm py-1">
+        <div className="flex flex-wrap gap-x-5 gap-y-1 items-center">
+          <span className="text-muted-foreground">Stundensatz: <span className="font-medium text-foreground">{projekt.stundensatz ? `${projekt.stundensatz} €/h` : '—'}</span></span>
+          <span className="text-muted-foreground">Abrechnung: <span className="font-medium text-foreground">{projekt.abrechnungsart}</span></span>
+          {projekt.abrechnungsart === 'Pauschal' && <span className="text-muted-foreground">Pauschalbetrag: <span className="font-medium text-foreground">{projekt.pauschalbetrag ? `${projekt.pauschalbetrag} €` : '—'}</span></span>}
+        </div>
+        {ansprechpartner && (
+          <div className="sm:ml-auto flex flex-wrap gap-x-4 gap-y-1 items-center">
+            <Link to={`/personen/${ansprechpartner.id}`} className="inline-flex items-center gap-1 text-accent hover:underline font-medium"><User className="w-3.5 h-3.5" /> {ansprechpartner.vorname} {ansprechpartner.nachname}</Link>
+            {ansprechpartner.telefon && <span className="text-muted-foreground">{ansprechpartner.telefon}</span>}
+            {ansprechpartner.email && <span className="text-muted-foreground">{ansprechpartner.email}</span>}
+          </div>
+        )}
       </div>
 
       <Card className="p-5 shadow-sm">
@@ -75,22 +86,16 @@ export default function ProjektDetail() {
       </Card>
 
       <Tabs defaultValue="phasen" className="w-full">
-        <TabsList className="grid grid-cols-4 md:grid-cols-7 mb-4 h-auto md:h-12">
-          <TabsTrigger value="phasen" className="min-h-[40px] text-xs">Phasen</TabsTrigger>
-          <TabsTrigger value="uebersicht" className="min-h-[40px] text-xs">Übersicht</TabsTrigger>
-          <TabsTrigger value="zeit" className="min-h-[40px] text-xs">Zeit</TabsTrigger>
-          <TabsTrigger value="aufgaben" className="min-h-[40px] text-xs">Aufgaben</TabsTrigger>
-          <TabsTrigger value="telefon" className="min-h-[40px] text-xs">Telefon</TabsTrigger>
-          <TabsTrigger value="abrechnung" className="min-h-[40px] text-xs">Abrechnung</TabsTrigger>
-          <TabsTrigger value="dokumente" className="min-h-[40px] text-xs">Dokumente</TabsTrigger>
+        <TabsList className="grid grid-cols-4 mb-4 h-12">
+          <TabsTrigger value="phasen">Phasen</TabsTrigger>
+          <TabsTrigger value="dokumente">Dokumente</TabsTrigger>
+          <TabsTrigger value="zeitgeld">Zeit & Geld</TabsTrigger>
+          <TabsTrigger value="aktivitaet">Aktivität</TabsTrigger>
         </TabsList>
         <TabsContent value="phasen"><ProjektPhasen projekt={projekt} firma={firma} onUpdate={loadProjekt} /></TabsContent>
-        <TabsContent value="uebersicht"><ProjektUebersicht projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
-        <TabsContent value="zeit"><ProjektZeiten projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
-        <TabsContent value="aufgaben"><ProjektAufgaben projekt={projekt} /></TabsContent>
-        <TabsContent value="telefon"><ProjektTelefonate projekt={projekt} /></TabsContent>
-        <TabsContent value="abrechnung"><ProjektAbrechnung projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
         <TabsContent value="dokumente"><ProjektDokumente projekt={projekt} firma={firma} /></TabsContent>
+        <TabsContent value="zeitgeld"><ProjektZeitGeld projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
+        <TabsContent value="aktivitaet"><ProjektAktivitaet projekt={projekt} /></TabsContent>
       </Tabs>
     </div>
   );
