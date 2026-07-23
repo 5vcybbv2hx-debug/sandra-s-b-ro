@@ -1,0 +1,61 @@
+{
+  "name": "Druckauftrag",
+  "type": "object",
+  "properties": {
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Datum"
+    },
+    "format": {
+      "type": "string",
+      "title": "Format",
+      "enum": [
+        "A4",
+        "A3",
+        "A2",
+        "A1",
+        "A0"
+      ],
+      "default": "A4"
+    },
+    "exemplare": {
+      "type": "number",
+      "title": "Exemplare",
+      "default": 1
+    },
+    "art": {
+      "type": "string",
+      "title": "Art",
+      "enum": [
+        "S/W",
+        "Farbig",
+        "Plot"
+      ],
+      "default": "S/W"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Geplant",
+        "Gedruckt",
+        "Abgeholt",
+        "Storniert"
+      ],
+      "default": "Geplant"
+    },
+    "notiz": {
+      "type": "string",
+      "title": "Notiz"
+    }
+  },
+  "required": [
+    "projekt_id"
+  ]
+}

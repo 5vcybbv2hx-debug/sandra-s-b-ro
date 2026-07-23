@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield } from 'lucide-react';
+import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield, UserCog, Printer } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
@@ -20,6 +20,8 @@ export default function Sidebar() {
     { to: '/angebote', label: 'Angebote', icon: FileText },
     { to: '/fahrten', label: 'Fahrtenliste', icon: Car },
     { to: '/vertraege', label: 'Verträge', icon: Shield },
+    { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
+    { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
     { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
   ] : [
     { to: '/', label: 'Heute', icon: Home },
@@ -36,6 +38,8 @@ export default function Sidebar() {
     { to: '/angebote', label: 'Angebote', icon: FileText },
     { to: '/fahrten', label: 'Fahrtenliste', icon: Car },
     { to: '/vertraege', label: 'Verträge', icon: Shield },
+    { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
+    { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
   ];
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-border h-screen sticky top-0 shrink-0">

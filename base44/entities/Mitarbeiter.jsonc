@@ -1,0 +1,53 @@
+{
+  "name": "Mitarbeiter",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "rolle": {
+      "type": "string",
+      "title": "Rolle"
+    },
+    "eintrittsdatum": {
+      "type": "string",
+      "format": "date",
+      "title": "Eintrittsdatum"
+    },
+    "austrittsdatum": {
+      "type": "string",
+      "format": "date",
+      "title": "Austrittsdatum"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Aktiv",
+        "Inaktiv"
+      ],
+      "default": "Aktiv"
+    },
+    "telefon": {
+      "type": "string",
+      "title": "Telefon"
+    },
+    "email": {
+      "type": "string",
+      "title": "E-Mail"
+    },
+    "stundensatz": {
+      "type": "number",
+      "title": "Stundensatz",
+      "default": 0
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

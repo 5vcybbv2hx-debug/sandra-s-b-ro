@@ -29,6 +29,9 @@ import Angebote from '@/pages/Angebote';
 import AngebotDetail from '@/pages/AngebotDetail';
 import Fahrtenliste from '@/pages/Fahrtenliste';
 import Vertraege from '@/pages/Vertraege';
+import Mitarbeiter from '@/pages/Mitarbeiter';
+import MitarbeiterDetail from '@/pages/MitarbeiterDetail';
+import Druckauftraege from '@/pages/Druckauftraege';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -78,6 +81,9 @@ const AuthenticatedApp = () => {
           <Route path="/angebote/:id" element={<AngebotDetail />} />
           <Route path="/fahrten" element={<Fahrtenliste />} />
           <Route path="/vertraege" element={<Vertraege />} />
+          <Route path="/mitarbeiter" element={<Mitarbeiter />} />
+          <Route path="/mitarbeiter/:id" element={<MitarbeiterDetail />} />
+          <Route path="/druckauftraege" element={<Druckauftraege />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

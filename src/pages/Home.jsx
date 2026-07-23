@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Phone, Plus, TrendingUp, GraduationCap, CalendarClock } from 'lucide-react';
 import Morgenroutine from '@/components/Morgenroutine';
+import AufmerksamkeitSection from '@/components/AufmerksamkeitSection';
 import { formatCurrency, todayISO, currentMonth } from '@/lib/format';
 import { getWeeklyCapacity, getDefaultStundensatz, getDefaultSteuerProzent, getMonthlyUmsatzziel } from '@/lib/settings';
 import { cn } from '@/lib/utils';
@@ -80,8 +81,10 @@ export default function Home() {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-5">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">{greeting}, Sandra</h1>
+        <AufmerksamkeitSection />
+
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">{greeting}, Sandra</h1>
         <p className="text-muted-foreground capitalize">{dateStr}</p>
         <p className="text-sm text-muted-foreground mt-1">Du hast <b className="text-foreground">{d.openTasks} offene Aufgaben</b>, <b className="text-foreground">{d.openCallbacks} offene Rückrufe</b>, <b className="text-foreground">{d.activeProjects} aktive Projekte</b></p>
       </div>
