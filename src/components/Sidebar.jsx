@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3 } from 'lucide-react';
+import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
@@ -17,6 +17,9 @@ export default function Sidebar() {
     { to: '/kontakte', label: 'Kontakte', icon: Users },
     { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
     { to: '/finanzen', label: 'Finanzen', icon: Wallet },
+    { to: '/angebote', label: 'Angebote', icon: FileText },
+    { to: '/fahrten', label: 'Fahrtenliste', icon: Car },
+    { to: '/vertraege', label: 'Verträge', icon: Shield },
     { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
   ] : [
     { to: '/', label: 'Heute', icon: Home },
@@ -30,6 +33,9 @@ export default function Sidebar() {
     { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
     { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
     { to: '/finanzen', label: 'Finanzen', icon: Wallet },
+    { to: '/angebote', label: 'Angebote', icon: FileText },
+    { to: '/fahrten', label: 'Fahrtenliste', icon: Car },
+    { to: '/vertraege', label: 'Verträge', icon: Shield },
   ];
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-border h-screen sticky top-0 shrink-0">

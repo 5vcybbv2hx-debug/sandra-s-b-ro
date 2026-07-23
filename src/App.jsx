@@ -25,6 +25,10 @@ import Abrechnung from '@/pages/Abrechnung';
 import AbrechnungDetail from '@/pages/AbrechnungDetail';
 import KapazitaetPlanung from '@/pages/KapazitaetPlanung';
 import Kalender from '@/pages/Kalender';
+import Angebote from '@/pages/Angebote';
+import AngebotDetail from '@/pages/AngebotDetail';
+import Fahrtenliste from '@/pages/Fahrtenliste';
+import Vertraege from '@/pages/Vertraege';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -70,6 +74,10 @@ const AuthenticatedApp = () => {
           <Route path="/abrechnung/:id" element={<AbrechnungDetail />} />
           <Route path="/kapazitaet" element={<KapazitaetPlanung />} />
           <Route path="/kalender" element={<Kalender />} />
+          <Route path="/angebote" element={<Angebote />} />
+          <Route path="/angebote/:id" element={<AngebotDetail />} />
+          <Route path="/fahrten" element={<Fahrtenliste />} />
+          <Route path="/vertraege" element={<Vertraege />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

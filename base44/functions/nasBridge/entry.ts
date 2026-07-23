@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
 
       if (!listJson.success) {
         const errorCode = listJson.error?.code || listJson.errors?.[0]?.code;
-        if (errorCode === 409) {
+        if (errorCode === 409 || errorCode === 408) {
           // Folder does not exist, create it!
           const lastSlash = folderPath.lastIndexOf('/');
           const parentPath = folderPath.substring(0, lastSlash);
@@ -200,6 +200,7 @@ Deno.serve(async (req) => {
 
       const files = (listJson.data?.files || []).map((f: any) => ({
         name: f.name,
+        isdir: f.isdir === true || f.isdir === 'true',
         size: f.additional?.size ?? 0,
         modified: f.additional?.time?.mtime ? new Date(f.additional.time.mtime * 1000).toISOString() : null,
         path: f.path

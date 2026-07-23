@@ -1,0 +1,46 @@
+{
+  "name": "Fahrt",
+  "type": "object",
+  "properties": {
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Datum"
+    },
+    "startort": {
+      "type": "string",
+      "title": "Startort"
+    },
+    "zielort": {
+      "type": "string",
+      "title": "Zielort"
+    },
+    "zweck": {
+      "type": "string",
+      "title": "Zweck"
+    },
+    "kilometer": {
+      "type": "number",
+      "title": "Kilometer"
+    },
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "uhrzeit_start": {
+      "type": "string",
+      "title": "Uhrzeit Start"
+    },
+    "uhrzeit_ende": {
+      "type": "string",
+      "title": "Uhrzeit Ende"
+    }
+  },
+  "required": [
+    "datum",
+    "startort",
+    "zielort",
+    "kilometer"
+  ]
+}

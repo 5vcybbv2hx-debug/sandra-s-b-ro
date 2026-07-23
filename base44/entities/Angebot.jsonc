@@ -1,0 +1,69 @@
+{
+  "name": "Angebot",
+  "type": "object",
+  "properties": {
+    "nummer": {
+      "type": "string",
+      "title": "Nummer"
+    },
+    "firma_id": {
+      "type": "string",
+      "reference": "Firma",
+      "title": "Firma"
+    },
+    "projekt_id": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Projekt"
+    },
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Datum"
+    },
+    "betreff": {
+      "type": "string",
+      "title": "Betreff"
+    },
+    "betrag_netto": {
+      "type": "number",
+      "title": "Betrag Netto",
+      "default": 0
+    },
+    "betrag_brutto": {
+      "type": "number",
+      "title": "Betrag Brutto",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Entwurf",
+        "Verschickt",
+        "Angenommen",
+        "Abgelehnt",
+        "Archiviert"
+      ],
+      "default": "Entwurf"
+    },
+    "pdf_url": {
+      "type": "string",
+      "title": "PDF URL"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "gueltig_bis": {
+      "type": "string",
+      "format": "date",
+      "title": "G\u00fcltig bis"
+    }
+  },
+  "required": [
+    "nummer",
+    "firma_id",
+    "betreff"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "Vertrag",
+  "type": "object",
+  "properties": {
+    "titel": {
+      "type": "string",
+      "title": "Titel"
+    },
+    "kategorie": {
+      "type": "string",
+      "title": "Kategorie",
+      "enum": [
+        "Software",
+        "Versicherung",
+        "Miete",
+        "Dienstleistung",
+        "Sonstiges"
+      ],
+      "default": "Sonstiges"
+    },
+    "anbieter": {
+      "type": "string",
+      "title": "Anbieter"
+    },
+    "abschlussdatum": {
+      "type": "string",
+      "format": "date",
+      "title": "Abschlussdatum"
+    },
+    "kuendigungsfrist": {
+      "type": "string",
+      "title": "K\u00fcndigungsfrist"
+    },
+    "naechste_kuendigung": {
+      "type": "string",
+      "format": "date",
+      "title": "N\u00e4chste K\u00fcndigung"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Aktiv",
+        "Gekuendigt",
+        "Ausgelaufen"
+      ],
+      "default": "Aktiv"
+    },
+    "kosten_jaehrlich": {
+      "type": "number",
+      "title": "Kosten j\u00e4hrlich",
+      "default": 0
+    },
+    "dokument_url": {
+      "type": "string",
+      "title": "Dokument URL"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    }
+  },
+  "required": [
+    "titel",
+    "kategorie"
+  ]
+}
