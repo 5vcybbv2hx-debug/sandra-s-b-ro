@@ -19,11 +19,12 @@ export default function NasSync() {
     setSyncing(true);
     setResult(null);
     try {
-      const res = await base44.fn.nasImport({ action: 'scan' });
-      if (res?.error) {
-        toast.error(`Fehler: ${res.error}`);
+      const res = await base44.functions.invoke('nasImport', { action: 'scan' });
+      const data = res?.data || res;
+      if (data?.error) {
+        toast.error(`Fehler: ${data.error}`);
       } else {
-        setResult(res);
+        setResult(data);
         const now = new Date().toLocaleString('de-DE');
         localStorage.setItem('nas_last_sync', now);
         setLastSync(now);

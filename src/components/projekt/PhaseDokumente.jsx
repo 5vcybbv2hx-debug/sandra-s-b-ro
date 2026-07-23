@@ -68,16 +68,17 @@ export default function PhaseDokumente({ phase, projekt, firma }) {
     try {
       const results = {};
       for (const sub of subfolders) {
-        const response = await base44.fn.nasBridge({ action: 'list', firma: firmaName, projekt: `${projektPath}/${sub}` });
-        if (response?.error) {
-          const msg = String(response.error).toLowerCase();
+        const response = await base44.functions.invoke('nasBridge', { action: 'list', firma: firmaName, projekt: `${projektPath}/${sub}` });
+        const data = response?.data || response;
+        if (data?.error) {
+          const msg = String(data.error).toLowerCase();
           if (msg.includes('reachable') || msg.includes('timeout') || msg.includes('connect')) {
             hadError = true;
             break;
           }
           results[sub] = [];
         } else {
-          results[sub] = (response?.files || []).filter((f) => !f.isdir);
+          results[sub] = (data?.files || []).filter((f) => !f.isdir);
         }
       }
       if (hadError) {
@@ -108,7 +109,7 @@ export default function PhaseDokumente({ phase, projekt, firma }) {
     try {
       for (const file of arr) {
         const fileBase64 = await convertToBase64(file);
-        await base44.fn.nasBridge({ action: 'upload', firma: firmaName, projekt: `${projektPath}/${targetSub}`, fileName: file.name, fileBase64 });
+        await base44.functions.invoke('nasBridge', { action: 'upload', firma: firmaName, projekt: `${projektPath}/${targetSub}`, fileName: file.name, fileBase64 });
       }
       toast.success(`${arr.length} Datei(en) hochgeladen`);
       setLoaded(false);
@@ -123,8 +124,9 @@ export default function PhaseDokumente({ phase, projekt, firma }) {
   const handleShare = async (file, subfolder) => {
     setSharingFile(file.name);
     try {
-      const response = await base44.fn.nasBridge({ action: 'share', firma: firmaName, projekt: `${projektPath}/${subfolder}`, fileName: file.name });
-      const url = response?.url;
+      const response = await base44.functions.invoke('nasBridge', { action: 'share', firma: firmaName, projekt: `${projektPath}/${subfolder}`, fileName: file.name });
+      const data = response?.data || response;
+      const url = data?.url;
       if (url) {
         await navigator.clipboard.writeText(url);
         toast.success('Freigabelink in Zwischenablage kopiert');
