@@ -86,6 +86,11 @@
       "title": "Gesch\u00e4tzte Stunden Gesamt",
       "default": 0
     },
+    "abgerechnete_stunden": {
+      "type": "number",
+      "title": "Abgerechnete Stunden",
+      "default": 0
+    },
     "ist_abgerechnet": {
       "type": "boolean",
       "title": "Abgerechnet",
