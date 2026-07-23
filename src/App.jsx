@@ -32,6 +32,8 @@ import Vertraege from '@/pages/Vertraege';
 import Mitarbeiter from '@/pages/Mitarbeiter';
 import MitarbeiterDetail from '@/pages/MitarbeiterDetail';
 import Druckauftraege from '@/pages/Druckauftraege';
+import Vorlagen from '@/pages/Vorlagen';
+import NasSync from '@/pages/NasSync';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -84,6 +86,8 @@ const AuthenticatedApp = () => {
           <Route path="/mitarbeiter" element={<Mitarbeiter />} />
           <Route path="/mitarbeiter/:id" element={<MitarbeiterDetail />} />
           <Route path="/druckauftraege" element={<Druckauftraege />} />
+          <Route path="/vorlagen" element={<Vorlagen />} />
+          <Route path="/nas-sync" element={<NasSync />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

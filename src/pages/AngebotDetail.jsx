@@ -63,6 +63,12 @@ export default function AngebotDetail() {
         <span className={cn('text-xs font-medium px-3 py-1.5 rounded-full shrink-0', STATUS_STYLES[angebot.status])}>{angebot.status}</span>
       </div>
 
+      <Button asChild variant="outline" className="gap-2 w-fit">
+        <a href={angebot.sevdesk_id ? `https://app.sevdesk.de/#/invoices/detail/${angebot.sevdesk_id}` : 'https://app.sevdesk.de/#/invoices/new'} target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="w-4 h-4" /> {angebot.sevdesk_id ? 'In sevdesk anzeigen' : 'In sevdesk öffnen'}
+        </a>
+      </Button>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-4">
           <div className="flex items-center gap-3">

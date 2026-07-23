@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield, UserCog, Printer } from 'lucide-react';
+import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield, UserCog, Printer, LayoutTemplate, HardDrive } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
@@ -22,6 +22,8 @@ export default function Sidebar() {
     { to: '/vertraege', label: 'Verträge', icon: Shield },
     { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
     { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
+    { to: '/vorlagen', label: 'Vorlagen', icon: LayoutTemplate },
+    { to: '/nas-sync', label: 'NAS Sync', icon: HardDrive },
     { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
   ] : [
     { to: '/', label: 'Heute', icon: Home },
@@ -40,6 +42,8 @@ export default function Sidebar() {
     { to: '/vertraege', label: 'Verträge', icon: Shield },
     { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
     { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
+    { to: '/vorlagen', label: 'Vorlagen', icon: LayoutTemplate },
+    { to: '/nas-sync', label: 'NAS Sync', icon: HardDrive },
   ];
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-border h-screen sticky top-0 shrink-0">

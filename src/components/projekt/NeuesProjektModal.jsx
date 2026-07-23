@@ -15,6 +15,7 @@ const PROJEKTARTEN = ['Grundriss', 'Schnitt', 'Genehmigungsplanung', 'Ausführun
 export default function NeuesProjektModal({ onClose, onCreated }) {
   const [firmen, setFirmen] = useState([]);
   const [ansprechpartner, setAnsprechpartner] = useState([]);
+  const [vorlagen, setVorlagen] = useState([]);
   const [form, setForm] = useState({
     projekt_name: '', firma_id: '', haupt_ansprechpartner_id: '', beschreibung: '',
     projektart: 'Sonstiges', status: 'Anfrage', aktuelle_phase: 'Entwurf',
@@ -26,7 +27,23 @@ export default function NeuesProjektModal({ onClose, onCreated }) {
   useEffect(() => {
     base44.entities.Firma.list('-name', 200).then(setFirmen).catch(() => {});
     base44.entities.Ansprechpartner.list('-nachname', 200).then(setAnsprechpartner).catch(() => {});
+    base44.entities.ProjektVorlage.list('-name', 200).then(setVorlagen).catch(() => {});
   }, []);
+
+  const applyVorlage = (vorlageId) => {
+    if (!vorlageId || vorlageId === '_none') return;
+    const v = vorlagen.find(v => v.id === vorlageId);
+    if (!v) return;
+    const totalStunden = (v.geschaetzte_stunden_entwurf || 0) + (v.geschaetzte_stunden_baugesuch || 0) + (v.geschaetzte_stunden_werkplanung || 0);
+    setForm(f => ({
+      ...f,
+      projektart: v.projektart || f.projektart,
+      stundensatz: v.standard_stundensatz || f.stundensatz,
+      abrechnungsart: v.abrechnungsart || f.abrechnungsart,
+      geschaetzte_stunden_gesamt: totalStunden,
+    }));
+    toast.success(`Vorlage "${v.name}" angewendet`);
+  };
 
   const filteredAP = form.firma_id ? ansprechpartner.filter((a) => a.firma_id === form.firma_id) : ansprechpartner;
   const erfahrungswerte = getErfahrungswerte();
@@ -53,6 +70,18 @@ export default function NeuesProjektModal({ onClose, onCreated }) {
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Neues Projekt</DialogTitle></DialogHeader>
         <div className="space-y-4">
+          {vorlagen.length > 0 && (
+            <div>
+              <Label>Vorlage verwenden</Label>
+              <Select value="_none" onValueChange={applyVorlage}>
+                <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Keine Vorlage" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">Keine Vorlage</SelectItem>
+                  {vorlagen.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div><Label>Projektname *</Label><Input value={form.projekt_name} onChange={(e) => setForm({ ...form, projekt_name: e.target.value })} className="min-h-[48px]" autoFocus /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Firma</Label><Select value={form.firma_id || '_none'} onValueChange={(v) => onFirmaChange(v === '_none' ? '' : v)}><SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Firma wählen" /></SelectTrigger><SelectContent><SelectItem value="_none">Keine Firma</SelectItem>{firmen.map((f) => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent></Select></div>

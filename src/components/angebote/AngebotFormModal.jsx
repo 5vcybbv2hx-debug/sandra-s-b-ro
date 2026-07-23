@@ -17,7 +17,7 @@ export default function AngebotFormModal({ open, onClose, onSaved, editAngebot, 
   const [form, setForm] = useState({
     nummer: '', firma_id: '', projekt_id: '', datum: todayISO(),
     betreff: '', betrag_netto: 0, betrag_brutto: 0, status: 'Entwurf',
-    pdf_url: '', notizen: '', gueltig_bis: '',
+    pdf_url: '', notizen: '', gueltig_bis: '', sevdesk_id: '',
   });
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function AngebotFormModal({ open, onClose, onSaved, editAngebot, 
         betreff: editAngebot.betreff || '', betrag_netto: editAngebot.betrag_netto || 0,
         betrag_brutto: editAngebot.betrag_brutto || 0, status: editAngebot.status || 'Entwurf',
         pdf_url: editAngebot.pdf_url || '', notizen: editAngebot.notizen || '',
-        gueltig_bis: editAngebot.gueltig_bis || '',
+        gueltig_bis: editAngebot.gueltig_bis || '', sevdesk_id: editAngebot.sevdesk_id || '',
       });
     } else {
       setForm(f => ({ ...f, datum: todayISO() }));
@@ -146,6 +146,10 @@ export default function AngebotFormModal({ open, onClose, onSaved, editAngebot, 
                 {['Entwurf', 'Verschickt', 'Angenommen', 'Abgelehnt', 'Archiviert'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label>sevdesk ID</Label>
+            <Input value={form.sevdesk_id} onChange={(e) => setForm(f => ({ ...f, sevdesk_id: e.target.value }))} placeholder="Optional — für sevdesk Deep-Link" />
           </div>
           <div>
             <Label>PDF hochladen</Label>

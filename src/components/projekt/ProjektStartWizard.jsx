@@ -21,6 +21,8 @@ export default function ProjektStartWizard({ onClose, onCreated }) {
   const [firmen, setFirmen] = useState([]);
   const [ansprechpartner, setAnsprechpartner] = useState([]);
   const [erfahrungswerte, setErfahrungswerte] = useState([]);
+  const [vorlagen, setVorlagen] = useState([]);
+  const [vorlageApplied, setVorlageApplied] = useState(false);
   const [firmaMode, setFirmaMode] = useState('existing');
   const [apMode, setApMode] = useState('existing');
   const [firmaId, setFirmaId] = useState('');
@@ -33,11 +35,11 @@ export default function ProjektStartWizard({ onClose, onCreated }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([base44.entities.Firma.list('-name', 200), base44.entities.Ansprechpartner.list('-nachname', 200), base44.entities.Phasen_Erfahrungswerte.list('-projektart', 200)]).then(([f, a, e]) => { setFirmen(f); setAnsprechpartner(a); setErfahrungswerte(e); }).catch(() => {});
+    Promise.all([base44.entities.Firma.list('-name', 200), base44.entities.Ansprechpartner.list('-nachname', 200), base44.entities.Phasen_Erfahrungswerte.list('-projektart', 200), base44.entities.ProjektVorlage.list('-name', 200)]).then(([f, a, e, v]) => { setFirmen(f); setAnsprechpartner(a); setErfahrungswerte(e); setVorlagen(v); }).catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (step === 3) {
+    if (step === 3 && !vorlageApplied) {
       const vals = erfahrungswerte.filter(e => e.projektart === projekt.projektart);
       const ps = { Entwurf: 0, Baugesuch: 0, Werkplanung: 0 };
       vals.forEach(v => { if (ps.hasOwnProperty(v.phase)) ps[v.phase] = v.durchschnitt_stunden || 0; });
@@ -47,6 +49,25 @@ export default function ProjektStartWizard({ onClose, onCreated }) {
 
   const filteredAP = firmaId ? ansprechpartner.filter(a => a.firma_id === firmaId) : ansprechpartner;
   const unresolved = checks.map((c, i) => !c ? CHECKS[i] : null).filter(Boolean);
+
+  const applyVorlage = (vorlageId) => {
+    if (!vorlageId || vorlageId === '_none') return;
+    const v = vorlagen.find(v => v.id === vorlageId);
+    if (!v) return;
+    setProjekt(p => ({
+      ...p,
+      projektart: v.projektart || p.projektart,
+      abrechnungsart: v.abrechnungsart || p.abrechnungsart,
+      stundensatz: v.standard_stundensatz || p.stundensatz,
+    }));
+    setPhaseStunden({
+      Entwurf: v.geschaetzte_stunden_entwurf || 0,
+      Baugesuch: v.geschaetzte_stunden_baugesuch || 0,
+      Werkplanung: v.geschaetzte_stunden_werkplanung || 0,
+    });
+    setVorlageApplied(true);
+    toast.success(`Vorlage "${v.name}" angewendet`);
+  };
 
   const handleCreate = async () => {
     setSaving(true);
@@ -82,6 +103,18 @@ export default function ProjektStartWizard({ onClose, onCreated }) {
 
         {step === 1 && (
           <div className="space-y-4">
+            {vorlagen.length > 0 && (
+              <div>
+                <Label>Vorlage verwenden</Label>
+                <Select value="_none" onValueChange={applyVorlage}>
+                  <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Keine Vorlage" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Keine Vorlage</SelectItem>
+                    {vorlagen.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div><Label>Projektname *</Label><Input value={projekt.projekt_name} onChange={e => setProjekt({...projekt, projekt_name: e.target.value})} className="min-h-[48px]" autoFocus /></div>
             <div className="grid grid-cols-2 gap-3"><div><Label>Projektart</Label><Select value={projekt.projektart} onValueChange={v => setProjekt({...projekt, projektart: v})}><SelectTrigger className="min-h-[48px]"><SelectValue /></SelectTrigger><SelectContent>{PROJEKTARTEN.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div><div><Label>Abrechnung</Label><Select value={projekt.abrechnungsart} onValueChange={v => setProjekt({...projekt, abrechnungsart: v})}><SelectTrigger className="min-h-[48px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Stündlich">Stundensatz</SelectItem><SelectItem value="Pauschal">Pauschale</SelectItem></SelectContent></Select></div></div>
             <div className="grid grid-cols-2 gap-3"><div><Label>Startdatum</Label><Input type="date" value={projekt.startdatum} onChange={e => setProjekt({...projekt, startdatum: e.target.value})} className="min-h-[48px]" /></div><div><Label>Deadline</Label><Input type="date" value={projekt.deadline} onChange={e => setProjekt({...projekt, deadline: e.target.value})} className="min-h-[48px]" /></div></div>

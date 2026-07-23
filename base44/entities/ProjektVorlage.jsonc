@@ -1,0 +1,58 @@
+{
+  "name": "ProjektVorlage",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "projektart": {
+      "type": "string",
+      "title": "Projektart",
+      "enum": [
+        "Wohnbau",
+        "Gewerbebau",
+        "\u00d6ffentliches Bauvorhaben",
+        "Umbau/Sanierung",
+        "Sonstiges"
+      ],
+      "default": "Sonstiges"
+    },
+    "standard_stundensatz": {
+      "type": "number",
+      "title": "Standard Stundensatz",
+      "default": 0
+    },
+    "geschaetzte_stunden_entwurf": {
+      "type": "number",
+      "title": "Gesch\u00e4tzte Stunden Entwurf",
+      "default": 0
+    },
+    "geschaetzte_stunden_baugesuch": {
+      "type": "number",
+      "title": "Gesch\u00e4tzte Stunden Baugesuch",
+      "default": 0
+    },
+    "geschaetzte_stunden_werkplanung": {
+      "type": "number",
+      "title": "Gesch\u00e4tzte Stunden Werkplanung",
+      "default": 0
+    },
+    "abrechnungsart": {
+      "type": "string",
+      "title": "Abrechnungsart",
+      "enum": [
+        "St\u00fcndlich",
+        "Pauschal"
+      ],
+      "default": "St\u00fcndlich"
+    },
+    "beschreibung": {
+      "type": "string",
+      "title": "Beschreibung"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

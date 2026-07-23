@@ -59,6 +59,10 @@
       "type": "string",
       "format": "date",
       "title": "G\u00fcltig bis"
+    },
+    "sevdesk_id": {
+      "type": "string",
+      "title": "sevdesk ID"
     }
   },
   "required": [
