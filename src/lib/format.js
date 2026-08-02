@@ -34,5 +34,5 @@ export function monthLabel(monat) {
 }
 
 export function roundToQuarter(hours) {
-  return Math.max(0.25, Math.round(hours * 4) / 4);
+  return Math.round(hours * 4) / 4;
 }

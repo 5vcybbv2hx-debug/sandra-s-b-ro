@@ -79,7 +79,19 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ success: true, total: outlookEvents.length, created, updated, deleted });
+    // Cleanup: Remove deleted_outlook events older than 90 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const staleEvents = await base44.asServiceRole.entities.KalenderEvent.filter({ source: 'outlook', sync_status: 'deleted_outlook' });
+    let cleaned = 0;
+    for (const evt of staleEvents) {
+      if (evt.last_synced_at && new Date(evt.last_synced_at) < cutoff) {
+        await base44.asServiceRole.entities.KalenderEvent.update(evt.id, { sync_status: 'archived_outlook' });
+        cleaned++;
+      }
+    }
+
+    return Response.json({ success: true, total: outlookEvents.length, created, updated, deleted, cleaned });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
@@ -32,7 +32,6 @@ export default function Home() {
     loadData();
   }, [user]);
 
-  if (user?.role === 'admin') return <Navigate to="/projekte" replace />;
   if (showMorgenroutine) return <Morgenroutine onComplete={() => { setShowMorgenroutine(false); loadData(); }} />;
 
   const loadData = async () => {
@@ -42,7 +41,7 @@ export default function Home() {
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
         base44.entities.Projekt.filter({ status: 'Aktiv' }, '-deadline', 50),
         base44.entities.Firma.list('-name', 200),
-        base44.entities.Zeiteintrag.list('-datum', 500),
+        base44.entities.Zeiteintrag.list('-datum', 2000),
         base44.entities.Projektphase.list('-updated_date', 500),
         base44.entities.Kapazitaetseinstellung.list(),
         base44.entities.Phasen_Erfahrungswerte.list('-projektart', 200),

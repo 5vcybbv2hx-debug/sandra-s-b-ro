@@ -34,6 +34,7 @@ import MitarbeiterDetail from '@/pages/MitarbeiterDetail';
 import Druckauftraege from '@/pages/Druckauftraege';
 import Vorlagen from '@/pages/Vorlagen';
 import NasSync from '@/pages/NasSync';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <ErrorBoundary>
     <TimerProvider>
       <Routes>
         <Route element={<Layout />}>
@@ -92,6 +94,7 @@ const AuthenticatedApp = () => {
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </TimerProvider>
+    </ErrorBoundary>
   );
 };
 

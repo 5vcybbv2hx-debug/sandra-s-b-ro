@@ -17,7 +17,7 @@ export default function Finanzen() {
   const months = Array.from({ length: 12 }, (_, i) => { const d = new Date(new Date().getFullYear(), i, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; });
 
   useEffect(() => { loadData(); }, [monat]);
-  const loadData = async () => { setLoading(true); try { const [e, p] = await Promise.all([base44.entities.Zeiteintrag.list('-datum', 500), base44.entities.Projekt.list('-updated_date', 200)]); setEintraege(e.filter((x) => !x.timer_laeuft && x.datum?.startsWith(monat))); setProjekte(p.filter((p) => p.status === 'Aktiv')); } catch (e) { console.error(e); } finally { setLoading(false); } };
+  const loadData = async () => { setLoading(true); try { const [e, p] = await Promise.all([base44.entities.Zeiteintrag.list('-datum', 2000), base44.entities.Projekt.list('-updated_date', 200)]); setEintraege(e.filter((x) => !x.timer_laeuft && x.datum?.startsWith(monat))); setProjekte(p.filter((p) => p.status === 'Aktiv')); } catch (e) { console.error(e); } finally { setLoading(false); } };
 
   const stundensatz = getDefaultStundensatz();
   const steuerProzent = getDefaultSteuerProzent();

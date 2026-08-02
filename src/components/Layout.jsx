@@ -5,8 +5,11 @@ import BottomNav from './BottomNav';
 import TimerBanner from './TimerBanner';
 import QuickCaptureFAB from './QuickCaptureFAB';
 import FeierabendFAB from './FeierabendFAB';
+import { useEffect } from 'react';
+import { syncSettingsFromServer } from '@/lib/settings';
 
 export default function Layout() {
+  useEffect(() => { syncSettingsFromServer(); }, []);
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />

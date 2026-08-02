@@ -6,10 +6,11 @@ if (typeof process !== 'undefined') {
 }
 
 Deno.serve(async (req) => {
+  let base44;
   try {
-    const base44 = createClientFromRequest(req);
+    base44 = createClientFromRequest(req);
   } catch (e) {
-    // If auth client creation fails, we can either ignore or handle it
+    return Response.json({ success: false, error: 'Authentifizierung fehlgeschlagen.' }, { status: 401 });
   }
   
   // Parse body

@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Graph API error: ${response.status} ${errorText}` }, { status: 502 });
     }
 
-    await base44.asServiceRole.entities.KalenderEvent.delete(kalender_event_id);
+    await base44.asServiceRole.entities.KalenderEvent.update(kalender_event_id, { sync_status: "deleted_outlook", last_synced_at: new Date().toISOString() });
 
     return Response.json({ success: true });
   } catch (error) {
