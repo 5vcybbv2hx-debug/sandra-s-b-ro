@@ -63,6 +63,16 @@
     "sevdesk_id": {
       "type": "string",
       "title": "sevdesk ID"
+    },
+    "access_scope": {
+      "type": "string",
+      "title": "Access Scope",
+      "enum": [
+        "private",
+        "team",
+        "org"
+      ],
+      "default": "private"
     }
   },
   "required": [

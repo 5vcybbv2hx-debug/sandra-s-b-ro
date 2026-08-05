@@ -50,6 +50,16 @@
     "notizen": {
       "type": "string",
       "title": "Notizen"
+    },
+    "access_scope": {
+      "type": "string",
+      "title": "Access Scope",
+      "enum": [
+        "private",
+        "team",
+        "org"
+      ],
+      "default": "team"
     }
   },
   "required": [

@@ -39,6 +39,16 @@
       "type": "boolean",
       "title": "Aktiv",
       "default": true
+    },
+    "access_scope": {
+      "type": "string",
+      "title": "Access Scope",
+      "enum": [
+        "private",
+        "team",
+        "org"
+      ],
+      "default": "org"
     }
   },
   "required": [

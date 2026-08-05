@@ -79,6 +79,16 @@
     "outlook_change_key": {
       "type": "string",
       "title": "Outlook Change Key"
+    },
+    "access_scope": {
+      "type": "string",
+      "title": "Access Scope",
+      "enum": [
+        "private",
+        "team",
+        "org"
+      ],
+      "default": "team"
     }
   },
   "required": [

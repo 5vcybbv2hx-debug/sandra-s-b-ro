@@ -56,6 +56,16 @@
       "type": "boolean",
       "title": "Erledigt",
       "default": false
+    },
+    "access_scope": {
+      "type": "string",
+      "title": "Access Scope",
+      "enum": [
+        "private",
+        "team",
+        "org"
+      ],
+      "default": "team"
     }
   },
   "required": [

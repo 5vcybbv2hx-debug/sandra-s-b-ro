@@ -1,0 +1,62 @@
+{
+  "name": "SandraUserProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "reference": "User",
+      "title": "User"
+    },
+    "app_role": {
+      "type": "string",
+      "title": "App Role",
+      "enum": [
+        "sandra_admin",
+        "sandra_viewer",
+        "finance_preparer",
+        "sandra_employee"
+      ],
+      "default": "sandra_viewer"
+    },
+    "active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "anonymous"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "anonymous"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "anonymous"
+        }
+      ]
+    }
+  }
+}
