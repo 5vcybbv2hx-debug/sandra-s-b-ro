@@ -1,81 +1,99 @@
-# Fahrtenbuch mit iPhone Kurzbefehlen — Anleitung für Sandra
+# Fahrtenbuch — iOS Shortcuts Anleitung
 
-## Was du brauchst
+Diese Anleitung beschreibt, wie Sandra das Fahrtenbuch über iOS-Kurzbefehle (Shortcuts) automatisch erfasst. Die Shortcuts senden GPS-Koordinaten an die `recordDrive`-Backend-Function, die daraus Fahrt-Records erstellt.
 
-- iPhone mit iOS 16 oder höher
-- Kurzbefehle App (vorinstalliert)
-- Sandra's Büro App URL (wird nach Deploy bekannt gegeben)
+## Funktionsweise
 
-## Schritt 1: "Fahrt starten" Kurzbefehl erstellen
+- **Start-Shortcut**: Beim Einsteigen ins Auto wird der Standort gesendet → es entsteht eine **offene Fahrt** (gelb markiert in der App).
+- **End-Shortcut**: Beim Aussteigen wird erneut der Standort gesendet → die offene Fahrt wird **abgeschlossen** (Distanz per Haversine berechnet, Zielort per Reverse-Geocoding ermittelt).
+- In der App kann Sandra dann mit einem Klick auf **„Vervollständigen"** Zweck und Projekt nachtragen.
 
-1. Öffne die **Kurzbefehle** App
-2. Tippe **+** (oben rechts) für neuen Kurzbefehl
-3. Nenne ihn **"Fahrt starten"**
-4. Tippe **+ Aktion hinzufügen**
-5. Suche **"Standort abrufen"** → hinzufügen
-6. Suche **"Text"** → hinzufügen. Füge ein:
-   ```
-   {"action":"start","lat":[Standort]Breitengrad,"lng":[Standort]Längengrad}
-   ```
-   (Die Werte in Klammern [ ] als Variablen aus der Standort-Aktion einfügen)
-7. Suche **"Inhalt von URL abrufen"** → hinzufügen
-   - URL: `https://app.base44.com/api/apps/APP_ID/functions/recordDrive`
+---
+
+## Voraussetzung: Endpoint & Token
+
+Die `recordDrive`-Function ist über die App erreichbar. Den genauen Endpoint-URL findest du im Base44-Dashboard unter **Code → Functions → recordDrive**.
+
+Authentifizierung erfolgt über einen Header:
+
+| Header | Wert |
+|---|---|
+| `X-Drive-Token` | `sandra-drive-2026` |
+
+Der Body ist JSON mit `action`, `lat` und `lon`.
+
+---
+
+## Shortcut 1: Fahrt starten
+
+1. Öffne die **Kurzbefehle**-App auf dem iPhone.
+2. Tippe auf **„Neuer Kurzbefehl"**.
+3. Benenne ihn **„Fahrt starten"**.
+4. Füge die Aktion **„Aktuellen Standort abrufen"** hinzu.
+5. Füge die Aktion **„Dictionary"** (Wörterbuch) hinzu mit drei Feldern:
+   - `action` — Text — `start`
+   - `lat` — Zahl — `{{Aktueller Standort.Breitengrad}}` (Variable aus der Standort-Aktion)
+   - `lon` — Zahl — `{{Aktueller Standort.Längengrad}}`
+6. Füge die Aktion **„JSON aus Dictionary erstellen"** hinzu.
+7. Füge die Aktion **„Inhalt von URL abrufen"** hinzu:
+   - URL: `https://deine-app.base44.app/api/functions/recordDrive` *(echte Function-URL aus dem Dashboard verwenden)*
    - Methode: **POST**
    - Header: `X-Drive-Token` = `sandra-drive-2026`
-   - Body: **Datei** → den Text von oben
-8. Füge **"Ergebnis anzeigen"** oder **"Benachrichtigung anzeigen"** hinzu
-9. Füge **"In Zwischenablage kopieren"** mit dem drive_id aus dem Ergebnis hinzu
+   - Body: das erstellte JSON
+8. **Fertig stellen** — teste den Shortcut einmal manuell.
 
-## Schritt 2: "Fahrt beenden" Kurzbefehl erstellen
+> Tipp: Die Variable für den Standort fügst du ein, indem du im Dictionary-Feld das Tastatur-Symbol oben rechts tippst und **„Aktueller Standort"** → **„Breitengrad"** auswählst.
 
-1. Neuer Kurzbefehl → **"Fahrt beenden"**
-2. **Standort abrufen** Aktion hinzufügen
-3. **Text"** Aktion:
-   ```
-   {"action":"end","lat":[Standort]Breitengrad,"lng":[Standort]Längengrad,"drive_id":[Zwischenablage]}
-   ```
-4. **Inhalt von URL abrufen**:
-   - Gleiche URL, Methode POST, gleicher Header
-   - Body: den Text
-5. **Benachrichtigung anzeigen** mit Kilometern aus dem Ergebnis
+---
 
-## Schritt 3: Automatisierung einrichten (optional, ohne Tippen)
+## Shortcut 2: Fahrt beenden
 
-1. Öffne **Automatisierung** in der Kurzbefehle App
-2. **+ Neue Automatisierung erstellen**
-3. Trigger: **"Bluetooth verbindet mit"** → dein Auto auswählen
-4. Aktion: **Kurzbefehl ausführen** → "Fahrt starten"
-5. **Vor dem Ausführen fragen**: EIN (du bestätigst mit einem Tap)
+1. Neuer Kurzbefehl → benennen **„Fahrt beenden"**.
+2. Aktion **„Aktuellen Standort abrufen"**.
+3. Aktion **„Dictionary"** mit:
+   - `action` — Text — `end`
+   - `lat` — Zahl — `{{Aktueller Standort.Breitengrad}}`
+   - `lon` — Zahl — `{{Aktueller Standort.Längengrad}}`
+4. Aktion **„JSON aus Dictionary erstellen"**.
+5. Aktion **„Inhalt von URL abrufen"**:
+   - URL: gleiche `recordDrive`-URL
+   - Methode: **POST**
+   - Header: `X-Drive-Token` = `sandra-drive-2026`
+   - Body: JSON
+6. **Fertig stellen**.
 
-Zweite Automatisierung:
-1. Trigger: **"Bluetooth trennt von"** → dein Auto
-2. Aktion: **Kurzbefehl ausführen** → "Fahrt beenden"
-3. **Vor dem Ausführen fragen**: AUS (läuft automatisch)
+---
 
-## So funktioniert es im Alltag
+## Automatisierung: Bluetooth-Verbindung
 
-**Einsteigen ins Auto:**
-- iPhone verbindet sich mit Auto-Bluetooth
-- Notification: "Fahrt starten?" → **Ja** tippen
-- GPS wird erfasst, Fahrt wird erstellt
+Damit die Shortcuts automatisch starten, wenn Sandra ins Auto steigt:
 
-**Aussteigen:**
-- Bluetooth trennt → "Fahrt beenden" läuft automatisch
-- GPS wird erfasst, Distanz wird berechnet
-- Benachrichtigung: "12.5 km erfasst"
+1. Öffne die **Kurzbefehle**-App → Reiter **„Automatisierung"**.
+2. **„Persönliche Automatisierung erstellen"**.
+3. Trigger: **„Bluetooth"** → **„Wird verbunden"**.
+4. Gerät: das Auto-Bluetooth auswählen.
+5. Aktion hinzufügen: **„Kurzbefehl ausführen"** → **„Fahrt starten"**.
+6. **„Nicht nachfragen"** aktivieren → **Fertig**.
 
-**Später in der App:**
-- Fahrtenliste öffnen → "Offene Fahrten" oben
-- Zweck eingeben (z.B. "Baustellenbesuch")
-- Projekt auswählen → Vervollständigen
+Zweite Automatisierung für das Beenden:
 
-## Wichtige Hinweise
+1. Trigger: **„Bluetooth"** → **„Wird getrennt"** (vom Auto).
+2. Aktion: **„Kurzbefehl ausführen"** → **„Fahrt beenden"**.
+3. **„Nicht nachfragen"** aktivieren → **Fertig**.
 
-- GPS in Tiefgaragen kann ungenau sein
-- Wenn du vergessen hast zu starten → Fahrt manuell hinzufügen
-- Die Distanz ist Luftlinie × 1.3 (Straßen-Korrekturfaktor) — bei Bedarf in der App korrigieren
-- Der Token "sandra-drive-2026" kann später geändert werden
+> Alternativ-Trigger falls Bluetooth nicht zuverlässig: **CarPlay** „Wird verbunden/getrennt".
 
-## Token ändern (Sicherheit)
+---
 
-Falls der Token geändert werden muss, in der Backend-Function `recordDrive` den Wert anpassen und in den Kurzbefehlen den neuen Header eintragen.
+## In der App
+
+- **Offene Fahrten** erscheinen oben mit gelber Markierung und einem **„Vervollständigen"**-Button.
+- Beim Vervollständigen trägst du **Zweck** und **Projekt** nach.
+- **Abgeschlossene Fahrten** werden darunter nach Tag gruppiert angezeigt.
+- CSV-Export pro Monat für Steuer / Buchhaltung.
+
+## Fehlersuche
+
+- **„Unauthorized"**: Token falsch oder fehlt — prüfe den Header `X-Drive-Token: sandra-drive-2026`.
+- **„No open drive found"** beim Beenden: Es wurde vorher kein Start gesendet — die End-Shortcut erstellt dann trotzdem eine abgeschlossene Fahrt, aber ohne Startort/Distanz.
+- **GPS ungenau**: Der Shortcut sollte nur ausgelöst werden, wenn der Standort präzise genug ist. Ggf. eine **„Warten"**-Aktion (2 Sekunden) vor dem Standortabruf einbauen, damit das GPS sich einschwingen kann.
