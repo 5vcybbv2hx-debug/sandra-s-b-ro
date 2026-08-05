@@ -61,26 +61,8 @@
     "kilometer"
   ],
   "rls": {
-    "read": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "anonymous"
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "anonymous"
-        }
-      ]
-    },
+    "read": {},
+    "update": {},
     "delete": {
       "$or": [
         {
