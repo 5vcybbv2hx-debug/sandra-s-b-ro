@@ -35,6 +35,23 @@
     "uhrzeit_ende": {
       "type": "string",
       "title": "Uhrzeit Ende"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "offen",
+        "abgeschlossen"
+      ],
+      "default": "abgeschlossen"
+    },
+    "gps_start": {
+      "type": "string",
+      "title": "GPS Start"
+    },
+    "gps_end": {
+      "type": "string",
+      "title": "GPS Ziel"
     }
   },
   "required": [
