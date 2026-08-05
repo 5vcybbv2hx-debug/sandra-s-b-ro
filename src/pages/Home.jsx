@@ -11,6 +11,7 @@ import AufmerksamkeitSection from '@/components/AufmerksamkeitSection';
 import { formatCurrency, todayISO, currentMonth } from '@/lib/format';
 import { getWeeklyCapacity, getDefaultStundensatz, getDefaultSteuerProzent, getMonthlyUmsatzziel } from '@/lib/settings';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const prioBadge = { A: 'bg-red-50 text-red-600', B: 'bg-orange-50 text-orange-600', C: 'bg-gray-100 text-gray-500' };
 
@@ -24,6 +25,7 @@ export default function Home() {
   const [d, setD] = useState(null);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState('');
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (user?.role === 'admin') return;
@@ -35,8 +37,9 @@ export default function Home() {
   if (showMorgenroutine) return <Morgenroutine onComplete={() => { setShowMorgenroutine(false); loadData(); }} />;
 
   const loadData = async () => {
+    setLoadError(false);
     try {
-      const [aufgaben, notizen, projekte, firmen, zeiten, phasen, kap, erf, kalEvents] = await Promise.all([
+      const results = await Promise.allSettled([
         base44.entities.Aufgabe.filter({ erledigt: false }),
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
         base44.entities.Projekt.filter({ status: 'Aktiv' }, '-deadline', 50),
@@ -47,6 +50,18 @@ export default function Home() {
         base44.entities.Phasen_Erfahrungswerte.list('-projektart', 200),
         base44.entities.KalenderEvent.list('-start_datetime', 200),
       ]);
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        console.error('Dashboard partial load errors:', failed.map(f => f.reason));
+        if (failed.length === results.length) {
+          setLoadError(true);
+          toast.error('Daten konnten nicht geladen werden. Bitte später erneut versuchen.');
+          setLoading(false);
+          return;
+        }
+        toast.warning(`${results.length - failed.length}/${results.length} Datenquellen geladen. Einige Bereiche könnten unvollständig sein.`);
+      }
+      const [aufgaben, notizen, projekte, firmen, zeiten, phasen, kap, erf, kalEvents] = results.map(r => r.status === 'fulfilled' ? r.value : []);
       const focused = aufgaben.filter(t => t.heute_fokussiert);
       const unfocused = aufgaben.filter(t => !t.heute_fokussiert).sort((a, b) => ({ A: 0, B: 1, C: 2 }[a.prioritaet] ?? 3) - ({ A: 0, B: 1, C: 2 }[b.prioritaet] ?? 3));
       const topTasks = [...focused, ...unfocused].slice(0, 3);
@@ -62,7 +77,7 @@ export default function Home() {
       const mGoal = kap[0]?.monatliches_umsatzziel || getMonthlyUmsatzziel();
       const wGoal = kap[0]?.woechentliche_zielstunden || getWeeklyCapacity();
       setD({ topTasks, callbacks, projects: projekte.slice(0, 6), firmen, zeiten, phasen, weekHours, wGoal, monthRevenue: monthHours * sRate, steuer: monthHours * sRate * sPct / 100, mGoal, openTasks: aufgaben.length, openCallbacks: callbacks.length, activeProjects: projekte.length, erfahrungswerte: erf, kalenderEvents: kalEvents });
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    } catch (e) { console.error(e); setLoadError(true); toast.error('Unerwarteter Fehler beim Laden. Bitte Seite neu laden.'); } finally { setLoading(false); }
   };
 
   const toggleTask = async (t) => { await base44.entities.Aufgabe.update(t.id, { erledigt: true, erledigt_am: todayISO(), heute_fokussiert: false }); loadData(); };
@@ -76,6 +91,12 @@ export default function Home() {
   const greeting = hour < 12 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
   const dateStr = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+  if (loadError && !d) return (
+    <div className="p-8 max-w-md mx-auto text-center space-y-4">
+      <p className="text-muted-foreground">Dashboard konnte nicht geladen werden.</p>
+      <button onClick={() => { setLoading(true); loadData(); }} className="bg-brand text-white rounded-xl px-6 py-3 min-h-[48px] font-medium">Erneut versuchen</button>
+    </div>
+  );
   if (loading || !d) return <div className="p-8 text-center text-muted-foreground">Lade Dashboard...</div>;
 
   return (

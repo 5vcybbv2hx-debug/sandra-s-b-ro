@@ -17,7 +17,6 @@ export default function BottomNav() {
   ] : [
     { to: '/', label: 'Heute', icon: Home },
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
-    { to: '/wochenuebersicht', label: 'Woche', icon: Calendar },
     { to: '/kalender', label: 'Kalender', icon: CalendarDays, badge: todayCount },
     { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
     { to: '/telefon', label: 'Telefon', icon: Phone },
