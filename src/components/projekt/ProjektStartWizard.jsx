@@ -82,8 +82,19 @@ export default function ProjektStartWizard({ onClose, onCreated }) {
         { projekt_id: p.id, phase: 'Baugesuch', status: 'Geplant', stunden_geschaetzt: Number(phaseStunden.Baugesuch) || 0 },
         { projekt_id: p.id, phase: 'Werkplanung', status: 'Geplant', stunden_geschaetzt: Number(phaseStunden.Werkplanung) || 0 },
       ]);
-      toast.success('Projekt erstellt'); onCreated(); onClose();
-    } catch (e) { toast.error('Fehler'); } finally { setSaving(false); }
+      
+      // NAS Ordner automatisch erstellen (im Hintergrund, nicht blockierend)
+      try {
+        const firmaName = firmaMode === 'new' ? newFirma.name : firmen.find(f => f.id === firmaId)?.name || '';
+        if (firmaName && projekt.projekt_name) {
+          await base44.functions.invoke('nasBridge', { action: 'list', firma: firmaName, projekt: projekt.projekt_name });
+        }
+      } catch (nasErr) {
+        console.log('NAS Ordner-Erstellung fehlgeschlagen (nicht kritisch):', nasErr);
+      }
+      
+      toast.success('Projekt erstellt — NAS-Ordner vorbereitet'); onCreated(); onClose();
+    } catch (e) { toast.error('Fehler beim Speichern'); console.error(e); } finally { setSaving(false); }
   };
 
   const canNext = step === 0 ? (firmaMode === 'existing' ? !!firmaId : !!newFirma.name.trim()) : step === 1 ? !!projekt.projekt_name.trim() : true;
