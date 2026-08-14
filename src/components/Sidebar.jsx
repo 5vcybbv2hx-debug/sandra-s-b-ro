@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield, UserCog, Printer, LayoutTemplate, HardDrive, ChevronDown } from 'lucide-react';
+import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield, UserCog, Printer, LayoutTemplate, HardDrive, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
@@ -38,6 +38,7 @@ export default function Sidebar() {
         { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
         { to: '/finanzen', label: 'Finanzen', icon: Wallet },
         { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
+        { to: '/rechnungs-matching', label: 'Rechnungs-Matching', icon: FileSpreadsheet },
       ],
     },
     {
@@ -85,6 +86,7 @@ export default function Sidebar() {
         { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
         { to: '/finanzen', label: 'Finanzen', icon: Wallet },
         { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
+        { to: '/rechnungs-matching', label: 'Rechnungs-Matching', icon: FileSpreadsheet },
       ],
     },
     {

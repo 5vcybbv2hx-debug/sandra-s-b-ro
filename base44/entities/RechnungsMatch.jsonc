@@ -1,0 +1,81 @@
+{
+  "name": "RechnungsMatch",
+  "type": "object",
+  "properties": {
+    "rechnr": {
+      "type": "string",
+      "title": "Rechnungsnummer"
+    },
+    "kunde": {
+      "type": "string",
+      "title": "Kunde"
+    },
+    "datum": {
+      "type": "string",
+      "title": "Datum"
+    },
+    "betrag": {
+      "type": "number",
+      "title": "Betrag",
+      "default": 0
+    },
+    "phase": {
+      "type": "string",
+      "title": "Phase"
+    },
+    "linked_project": {
+      "type": "string",
+      "reference": "Projekt",
+      "title": "Verkn\u00fcpftes Projekt"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Offen",
+        "Zugeordnet",
+        "Nicht_zuordnenbar"
+      ],
+      "default": "Offen"
+    },
+    "notiz": {
+      "type": "string",
+      "title": "Notiz"
+    }
+  },
+  "required": [
+    "rechnr"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "anonymous"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "anonymous"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "anonymous"
+        }
+      ]
+    }
+  }
+}
