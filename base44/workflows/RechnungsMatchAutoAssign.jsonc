@@ -1,0 +1,40 @@
+{
+  "name": "RechnungsMatch Auto-Assign",
+  "description": "Aktualisiert verkn\u00fcpftes Projekt (Abrechnung, Betrag, Stunden, Stundensatz) wenn eine Rechnung als 'Zugeordnet' markiert wird",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "RechnungsMatch",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"Zugeordnet\" and .trigger.data.linked_project != null and .trigger.old_data.status != \"Zugeordnet\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "rechnungs_match_auto_assign",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "auto_assign": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoAssignRechnung",
+            "args": {
+              "rechnung_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Projekt-Abrechnung aktualisieren",
+            "description": "Summiert zugeordnete Rechnungen und updated Projekt"
+          }
+        }
+      }
+    ]
+  }
+}

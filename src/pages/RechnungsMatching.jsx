@@ -30,6 +30,7 @@ export default function RechnungsMatching() {
   const [expandedId, setExpandedId] = useState(null);
   const [notizDraft, setNotizDraft] = useState({});
   const [linkDraft, setLinkDraft] = useState({});
+  const [stundenDraft, setStundenDraft] = useState({});
 
   const load = async () => {
     setLoading(true);
@@ -79,10 +80,12 @@ export default function RechnungsMatching() {
     const projectId = linkDraft[id];
     if (!projectId) { toast.error('Bitte Projekt wählen'); return; }
     const proj = projekte.find(p => p.id === projectId);
-    await updateRecord(id, { linked_project: projectId, status: 'Zugeordnet', notiz: notizDraft[id] ?? undefined });
+    const stundenVal = stundenDraft[id] !== undefined && stundenDraft[id] !== '' ? Number(stundenDraft[id]) : 0;
+    await updateRecord(id, { linked_project: projectId, status: 'Zugeordnet', notiz: notizDraft[id] ?? undefined, stunden: stundenVal });
     toast.success(`Verknüpft mit ${proj?.projekt_name || 'Projekt'}`);
     setLinkDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
     setNotizDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
+    setStundenDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
     setExpandedId(null);
   };
 
@@ -121,25 +124,31 @@ export default function RechnungsMatching() {
                 {linkedProj && <span className="text-brand-dark flex items-center gap-1"><Link2 className="w-3 h-3" />{linkedProj.projekt_name}</span>}
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { setExpandedId(isOpen ? null : r.id); if (!isOpen) { setLinkDraft(prev => ({ ...prev, [r.id]: r.linked_project || '' })); setNotizDraft(prev => ({ ...prev, [r.id]: r.notiz || '' })); } }} className="shrink-0">
+            <Button variant="ghost" size="sm" onClick={() => { setExpandedId(isOpen ? null : r.id); if (!isOpen) { setLinkDraft(prev => ({ ...prev, [r.id]: r.linked_project || '' })); setNotizDraft(prev => ({ ...prev, [r.id]: r.notiz || '' })); setStundenDraft(prev => ({ ...prev, [r.id]: r.stunden ?? '' })); } }} className="shrink-0">
               {isOpen ? 'Schließen' : 'Bearbeiten'}
             </Button>
           </div>
         </CardHeader>
         {isOpen && (
           <CardContent className="p-4 pt-2 space-y-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Projekt verknüpfen</label>
-              <div className="flex gap-2 mt-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Projekt verknüpfen</label>
                 <Select value={linkDraft[r.id] ?? ''} onValueChange={v => setLinkDraft(prev => ({ ...prev, [r.id]: v }))}>
-                  <SelectTrigger className="min-h-[40px] flex-1"><SelectValue placeholder="Projekt suchen & wählen" /></SelectTrigger>
+                  <SelectTrigger className="min-h-[40px] mt-1"><SelectValue placeholder="Projekt wählen" /></SelectTrigger>
                   <SelectContent>
                     {projekte.map(p => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Button onClick={() => handleLink(r.id)} disabled={!linkDraft[r.id]} className="bg-status-abgeschlossen hover:bg-status-abgeschlossen/90 text-white min-h-[40px]"><Check className="w-4 h-4" />Zugeordnet</Button>
-                <Button onClick={() => handleNicht(r.id)} variant="outline" className="min-h-[40px]"><X className="w-4 h-4" />Nicht zuordnenbar</Button>
               </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Abgerechnete Stunden</label>
+                <Input type="number" step="0.25" value={stundenDraft[r.id] ?? ''} onChange={e => setStundenDraft(prev => ({ ...prev, [r.id]: e.target.value }))} placeholder="0" className="min-h-[40px] mt-1" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => handleLink(r.id)} disabled={!linkDraft[r.id]} className="bg-status-abgeschlossen hover:bg-status-abgeschlossen/90 text-white min-h-[40px] flex-1"><Check className="w-4 h-4" />Zugeordnet</Button>
+              <Button onClick={() => handleNicht(r.id)} variant="outline" className="min-h-[40px]"><X className="w-4 h-4" />Nicht zuordnenbar</Button>
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Notiz</label>
