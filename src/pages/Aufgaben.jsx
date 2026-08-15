@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
@@ -28,8 +28,7 @@ export default function Aufgaben() {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => { if (user?.role === 'admin') return; loadData(); }, [user]);
-  if (user?.role === 'admin') return <Navigate to="/projekte" replace />;
+  useEffect(() => { loadData(); }, [user]);
 
   const loadData = async () => {
     try { const [a, p] = await Promise.all([base44.entities.Aufgabe.list('-created_date', 200), base44.entities.Projekt.list('-updated_date', 200)]); setAufgaben(a); setProjekte(p); }
