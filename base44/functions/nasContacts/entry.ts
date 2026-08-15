@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
-// nasContacts v2 — improved CardDAV discovery & errorDetails
+// nasContacts v3 — standard CardDAV discovery chain & enhanced debug
 
 if (typeof process !== 'undefined') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
