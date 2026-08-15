@@ -7,40 +7,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Search, Check, X, Link2, FileSpreadsheet } from 'lucide-react';
+import { Search, Check, X, Link2, FileSpreadsheet, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const STATUS_ORDER = ['Offen', 'Zugeordnet', 'Nicht_zuordnenbar'];
+const STATUS_ORDER = ['Offen', 'Zugeordnet', 'Kunde_zugeordnet', 'Nicht_zuordnenbar'];
 const STATUS_LABELS = {
   Offen: 'Offen',
   Zugeordnet: 'Zugeordnet',
+  Kunde_zugeordnet: 'Kunde zugeordnet',
   Nicht_zuordnenbar: 'Nicht zuordnenbar',
 };
 const STATUS_COLORS = {
   Offen: 'bg-amber-100 text-amber-700 border-amber-200',
   Zugeordnet: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  Kunde_zugeordnet: 'bg-teal-100 text-teal-700 border-teal-200',
   Nicht_zuordnenbar: 'bg-slate-100 text-slate-500 border-slate-200',
 };
 
 export default function RechnungsMatching() {
   const [records, setRecords] = useState([]);
   const [projekte, setProjekte] = useState([]);
+  const [firmen, setFirmen] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [notizDraft, setNotizDraft] = useState({});
   const [linkDraft, setLinkDraft] = useState({});
   const [stundenDraft, setStundenDraft] = useState({});
+  const [firmaDraft, setFirmaDraft] = useState({});
 
   const load = async () => {
     setLoading(true);
     try {
-      const [recs, pros] = await Promise.all([
+      const [recs, pros, firms] = await Promise.all([
         base44.entities.RechnungsMatch.list('-datum', 500),
         base44.entities.Projekt.list('-projekt_name', 500),
+        base44.entities.Firma.list('-name', 500),
       ]);
       setRecords(recs);
       setProjekte(pros);
+      setFirmen(firms);
     } catch (e) {
       toast.error('Fehler beim Laden');
       console.error(e);
@@ -86,6 +92,18 @@ export default function RechnungsMatching() {
     setLinkDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
     setNotizDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
     setStundenDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
+    setFirmaDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
+    setExpandedId(null);
+  };
+
+  const handleKundeLink = async (id) => {
+    const firmaId = firmaDraft[id];
+    if (!firmaId) { toast.error('Bitte Firma wählen'); return; }
+    const firma = firmen.find(f => f.id === firmaId);
+    await updateRecord(id, { linked_firma: firmaId, status: 'Kunde_zugeordnet', notiz: notizDraft[id] ?? undefined });
+    toast.success(`Verknüpft mit ${firma?.name || 'Firma'}`);
+    setFirmaDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
+    setNotizDraft(prev => { const n = { ...prev }; delete n[id]; return n; });
     setExpandedId(null);
   };
 
@@ -107,6 +125,7 @@ export default function RechnungsMatching() {
   const Row = ({ r }) => {
     const isOpen = expandedId === r.id;
     const linkedProj = r.linked_project ? projekte.find(p => p.id === r.linked_project) : null;
+    const linkedFirma = r.linked_firma ? firmen.find(f => f.id === r.linked_firma) : null;
     return (
       <Card className={cn('border-border', isOpen && 'ring-1 ring-brand')}>
         <CardHeader className="p-4 pb-2">
@@ -122,9 +141,10 @@ export default function RechnungsMatching() {
                 <span>{r.datum || '—'}</span>
                 <span className="font-semibold text-foreground">{formatEuro(r.betrag)}</span>
                 {linkedProj && <span className="text-brand-dark flex items-center gap-1"><Link2 className="w-3 h-3" />{linkedProj.projekt_name}</span>}
+                {linkedFirma && <span className="text-emerald-600 flex items-center gap-1"><Building2 className="w-3 h-3" />{linkedFirma.name}</span>}
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { setExpandedId(isOpen ? null : r.id); if (!isOpen) { setLinkDraft(prev => ({ ...prev, [r.id]: r.linked_project || '' })); setNotizDraft(prev => ({ ...prev, [r.id]: r.notiz || '' })); setStundenDraft(prev => ({ ...prev, [r.id]: r.stunden ?? '' })); } }} className="shrink-0">
+            <Button variant="ghost" size="sm" onClick={() => { setExpandedId(isOpen ? null : r.id); if (!isOpen) { setLinkDraft(prev => ({ ...prev, [r.id]: r.linked_project || '' })); setNotizDraft(prev => ({ ...prev, [r.id]: r.notiz || '' })); setStundenDraft(prev => ({ ...prev, [r.id]: r.stunden ?? '' })); setFirmaDraft(prev => ({ ...prev, [r.id]: r.linked_firma || '' })); } }} className="shrink-0">
               {isOpen ? 'Schließen' : 'Bearbeiten'}
             </Button>
           </div>
@@ -144,6 +164,18 @@ export default function RechnungsMatching() {
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Abgerechnete Stunden</label>
                 <Input type="number" step="0.25" value={stundenDraft[r.id] ?? ''} onChange={e => setStundenDraft(prev => ({ ...prev, [r.id]: e.target.value }))} placeholder="0" className="min-h-[40px] mt-1" />
+              </div>
+            </div>
+            <div className="border-t border-border pt-3">
+              <label className="text-xs font-medium text-muted-foreground">Kunde zuordnen (ohne Projekt)</label>
+              <div className="flex gap-2 mt-1">
+                <Select value={firmaDraft[r.id] ?? ''} onValueChange={v => setFirmaDraft(prev => ({ ...prev, [r.id]: v }))}>
+                  <SelectTrigger className="min-h-[40px] flex-1"><SelectValue placeholder="Firma wählen" /></SelectTrigger>
+                  <SelectContent>
+                    {firmen.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => handleKundeLink(r.id)} disabled={!firmaDraft[r.id]} className="bg-teal-600 hover:bg-teal-700 text-white min-h-[40px]"><Building2 className="w-4 h-4" />Kunde zuordnen</Button>
               </div>
             </div>
             <div className="flex gap-2">

@@ -33,12 +33,18 @@
       "reference": "Projekt",
       "title": "Verkn\u00fcpftes Projekt"
     },
+    "linked_firma": {
+      "type": "string",
+      "reference": "Firma",
+      "title": "Verkn\u00fcpfte Firma"
+    },
     "status": {
       "type": "string",
       "title": "Status",
       "enum": [
         "Offen",
         "Zugeordnet",
+        "Kunde_zugeordnet",
         "Nicht_zuordnenbar"
       ],
       "default": "Offen"
