@@ -49,6 +49,10 @@
       ],
       "default": "Offen"
     },
+    "pdf_url": {
+      "type": "string",
+      "title": "PDF URL"
+    },
     "notiz": {
       "type": "string",
       "title": "Notiz"
