@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Phone, Mail, Calendar, Euro, Edit } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Calendar, Euro, Edit, UserPlus, Loader2, CheckCircle2 } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import MitarbeiterFormModal from '@/components/mitarbeiter/MitarbeiterFormModal';
@@ -14,6 +14,8 @@ export default function MitarbeiterDetail() {
   const [m, setM] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [invited, setInvited] = useState(false);
 
   useEffect(() => { load(); }, [id]);
 
@@ -21,6 +23,21 @@ export default function MitarbeiterDetail() {
     try { setM(await base44.entities.Mitarbeiter.get(id)); }
     catch { toast.error('Mitarbeiter nicht gefunden'); }
     finally { setLoading(false); }
+  };
+
+  const handleInvite = async () => {
+    if (!m.email) { toast.error('Keine E-Mail hinterlegt — bitte erst E-Mail eintragen.'); return; }
+    setInviting(true);
+    try {
+      await base44.users.inviteUser(m.email, 'user');
+      setInvited(true);
+      toast.success(`Einladung an ${m.name} gesendet`);
+    } catch (err) {
+      const reason = err?.message || err?.error || 'Unbekannter Fehler';
+      toast.error(`Einladung fehlgeschlagen: ${reason}`);
+    } finally {
+      setInviting(false);
+    }
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Lade...</div>;
@@ -41,6 +58,39 @@ export default function MitarbeiterDetail() {
           {m.status}
         </span>
       </div>
+
+      {/* App-Einladung */}
+      {m.email && (
+        <Card className="p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-medium">App-Zugang</p>
+              <p className="text-sm text-muted-foreground">
+                {invited
+                  ? 'Einladung wurde gesendet. Mitarbeiter kann sich registrieren.'
+                  : 'Mitarbeiter per E-Mail zur App einladen.'}
+              </p>
+            </div>
+            {invited ? (
+              <div className="flex items-center gap-2 text-emerald-600 shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-sm font-medium">Eingeladen</span>
+              </div>
+            ) : (
+              <Button
+                onClick={handleInvite}
+                disabled={inviting}
+                className="gap-2 shrink-0"
+              >
+                {inviting
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <UserPlus className="w-4 h-4" />}
+                {inviting ? 'Senden...' : 'Einladen'}
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-4">
         {m.telefon && (
@@ -90,7 +140,12 @@ export default function MitarbeiterDetail() {
         </Card>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        {!m.email && (
+          <Button variant="outline" onClick={() => setEditOpen(true)} className="gap-2">
+            <Edit className="w-4 h-4" /> E-Mail hinterlegen
+          </Button>
+        )}
         <Button variant="outline" onClick={() => setEditOpen(true)} className="gap-2">
           <Edit className="w-4 h-4" /> Bearbeiten
         </Button>
