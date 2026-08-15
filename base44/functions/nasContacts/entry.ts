@@ -162,113 +162,94 @@ Deno.serve(async (req) => {
 
   // ─── XML Helpers ────────────────────────────────────────────────
 
-  function extractHrefs(xml: string): string[] {
-    const matches = xml.match(/<(?:d:)?href[^>]*>([^<]+)<\/(?:d:)?href>/gi) || [];
+  function extractFromXml(xml: string, tag: string): string[] {
+    const regex = new RegExp(`<(?:[a-z]+:)?${tag}[^>]*>([^<]+)<\\/(?:[a-z]+:)?${tag}>`, 'gi');
+    const matches = xml.match(regex) || [];
     return matches.map(m => m.replace(/<[^>]+>/g, '').trim());
   }
 
-  function isAddressBookCollection(xml: string, href: string): boolean {
-    // Check if the response block for this href contains addressbook resourcetype
-    // CardDAV namespace: urn:ietf:params:xml:ns:carddav
-    // Look for <card:addressbook/> or <addressbook/> in the resourcetype
-    const blockMatch = xml.match(new RegExp(
-      `<(?:d:)?response>[\\s\\S]*?<(?:d:)?href[^>]*>${href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}<\\/(?:d:)?href>[\\s\\S]*?<\\/(?:d:)?response>`,
-      'i'
-    ));
-    if (!blockMatch) return false;
-    const block = blockMatch[0];
-    // Check for addressbook in resourcetype (CardDAV)
-    return /<(?:card:)?addressbook\s*\/?>/i.test(block) || /addressbook/i.test(block.match(/<(?:d:)?resourcetype[^>]*>([\s\S]*?)<\/(?:d:)?resourcetype>/i)?.[0] || '');
-  }
-
-  // ─── CardDAV Discovery (improved) ──────────────────────────────
+  // ─── CardDAV Discovery (v3 — standard compliant) ────────────────
 
   async function discoverAddressBook(): Promise<string | null> {
-    // Step 1: PROPFIND on CardDAV root with Depth: 1 to find address books
     const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">
   <d:prop>
     <d:displayname />
     <d:resourcetype />
     <d:current-user-principal />
+    <card:addressbook-home-set />
   </d:prop>
 </d:propfind>`;
 
-    // Try root first
+    // Step 1: PROPFIND on CardDAV root to get current-user-principal
+    let principalHref: string | null = null;
+    let homeSetHref: string | null = null;
+
     try {
       const res = await fetchWithTimeout(`${carddavBase}/`, {
         method: 'PROPFIND',
         headers: {
           'Authorization': authHeader,
           'Content-Type': 'application/xml; charset=utf-8',
-          'Depth': '1',
+          'Depth': '0',
         },
         body: propfindBody,
       }, 10000);
 
       if (res.ok || res.status === 207) {
         const text = await res.text();
-        const hrefs = extractHrefs(text);
 
-        // Look for addressbook collections
-        for (const href of hrefs) {
-          if (isAddressBookCollection(text, href) && href.endsWith('/')) {
-            const fullUrl = href.startsWith('http') ? href : `${baseUrl}${href}`;
-            return fullUrl;
-          }
+        // Extract current-user-principal
+        const principalMatches = extractFromXml(text, 'href');
+        // current-user-principal contains an href — find it
+        const principalMatch = text.match(/<(?:d:)?current-user-principal[^>]*>[\s\S]*?<(?:d:)?href[^>]*>([^<]+)<\/(?:d:)?href>/i);
+        if (principalMatch) {
+          principalHref = principalMatch[1].trim();
         }
 
-        // If no addressbook found in root, try to find addressbook home
-        for (const href of hrefs) {
-          if (href.includes('addressbook') && href.endsWith('/') && !href.endsWith('/addressbooks/')) {
-            const fullUrl = href.startsWith('http') ? href : `${baseUrl}${href}`;
-
-            // PROPFIND on this to find actual address book
-            try {
-              const res2 = await fetchWithTimeout(fullUrl, {
-                method: 'PROPFIND',
-                headers: {
-                  'Authorization': authHeader,
-                  'Content-Type': 'application/xml; charset=utf-8',
-                  'Depth': '1',
-                },
-                body: propfindBody,
-              }, 10000);
-
-              if (res2.ok || res2.status === 207) {
-                const text2 = await res2.text();
-                const hrefs2 = extractHrefs(text2);
-                for (const href2 of hrefs2) {
-                  if (href2.endsWith('/') && !href2.endsWith(fullUrl.replace(baseUrl, ''))) {
-                    const fullUrl2 = href2.startsWith('http') ? href2 : `${baseUrl}${href2}`;
-                    // Check if this is an addressbook collection
-                    if (isAddressBookCollection(text2, href2)) {
-                      return fullUrl2;
-                    }
-                    // If it has a .vcf, it's likely an address book
-                    return fullUrl2;
-                  }
-                }
-              }
-            } catch {}
-          }
+        // Extract addressbook-home-set if present
+        const homeSetMatch = text.match(/<(?:card:)?addressbook-home-set[^>]*>[\s\S]*?<(?:d:)?href[^>]*>([^<]+)<\/(?:d:)?href>/i);
+        if (homeSetMatch) {
+          homeSetHref = homeSetMatch[1].trim();
         }
       }
     } catch {}
 
-    // Step 2: Try well-known Synology paths
-    const synologyPaths = [
-      `/addressbooks/${NAS_USER}/`,
-      `/addressbooks/users/${NAS_USER}/`,
-      `/addressbooks/${NAS_USER}/contacts/`,
-      `/addressbooks/${NAS_USER}/addressbook/`,
-      `/addressbooks/${encodeURIComponent(NAS_USER)}/`,
-      `/principals/users/${NAS_USER}/`,
-    ];
-
-    for (const path of synologyPaths) {
+    // Step 2: If we have addressbook-home-set, use it
+    if (homeSetHref) {
+      const homeUrl = homeSetHref.startsWith('http') ? homeSetHref : `${baseUrl}${homeSetHref}`;
       try {
-        const res = await fetchWithTimeout(`${carddavBase}${path}`, {
+        const res = await fetchWithTimeout(homeUrl, {
+          method: 'PROPFIND',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Depth': '1',
+          },
+          body: propfindBody,
+        }, 10000);
+
+        if (res.ok || res.status === 207) {
+          const text = await res.text();
+          const hrefs = extractFromXml(text, 'href');
+          // Find the first address book (skip the home itself)
+          for (const href of hrefs) {
+            if (href !== homeSetHref && href.endsWith('/')) {
+              return href.startsWith('http') ? href : `${baseUrl}${href}`;
+            }
+          }
+          // If only the home itself, it might be the address book
+          return homeUrl;
+        }
+      } catch {}
+    }
+
+    // Step 3: Follow current-user-principal to find address books
+    if (principalHref) {
+      const principalUrl = principalHref.startsWith('http') ? principalHref : `${baseUrl}${principalHref}`;
+
+      try {
+        const res = await fetchWithTimeout(principalUrl, {
           method: 'PROPFIND',
           headers: {
             'Authorization': authHeader,
@@ -280,44 +261,101 @@ Deno.serve(async (req) => {
 
         if (res.ok || res.status === 207) {
           const text = await res.text();
-          const hrefs = extractHrefs(text);
 
-          // Check if this path itself is an address book
-          if (isAddressBookCollection(text, hrefs[0] || path)) {
-            return `${carddavBase}${path}`;
+          // Look for addressbook-home-set in the principal response
+          const homeMatch = text.match(/<(?:card:)?addressbook-home-set[^>]*>[\s\S]*?<(?:d:)?href[^>]*>([^<]+)<\/(?:d:)?href>/i);
+          if (homeMatch) {
+            const abHomeHref = homeMatch[1].trim();
+            const abHomeUrl = abHomeHref.startsWith('http') ? abHomeHref : `${baseUrl}${abHomeHref}`;
+
+            // PROPFIND on address book home to find actual address books
+            const res2 = await fetchWithTimeout(abHomeUrl, {
+              method: 'PROPFIND',
+              headers: {
+                'Authorization': authHeader,
+                'Content-Type': 'application/xml; charset=utf-8',
+                'Depth': '1',
+              },
+              body: propfindBody,
+            }, 10000);
+
+            if (res2.ok || res2.status === 207) {
+              const text2 = await res2.text();
+              const hrefs2 = extractFromXml(text2, 'href');
+              for (const href of hrefs2) {
+                if (href !== abHomeHref && href.endsWith('/')) {
+                  return href.startsWith('http') ? href : `${baseUrl}${href}`;
+                }
+              }
+              return abHomeUrl;
+            }
           }
+        }
+      } catch {}
 
-          // If Depth 0 returned something, try Depth 1 to find address books
-          const res2 = await fetchWithTimeout(`${carddavBase}${path}`, {
-            method: 'PROPFIND',
-            headers: {
-              'Authorization': authHeader,
-              'Content-Type': 'application/xml; charset=utf-8',
-              'Depth': '1',
-            },
-            body: propfindBody,
-          }, 10000);
+      // Step 4: Principal might itself be the address book home (Synology style)
+      // Try PROPFIND Depth 1 on the principal to find address books
+      try {
+        const res = await fetchWithTimeout(principalUrl, {
+          method: 'PROPFIND',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Depth': '1',
+          },
+          body: `<?xml version="1.0" encoding="utf-8"?>
+<d:propfind xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">
+  <d:prop>
+    <d:displayname />
+    <d:resourcetype />
+  </d:prop>
+</d:propfind>`,
+        }, 10000);
 
-          if (res2.ok || res2.status === 207) {
-            const text2 = await res2.text();
-            const hrefs2 = extractHrefs(text2);
-            for (const href2 of hrefs2) {
-              if (href2.endsWith('/') && href2 !== path) {
-                const fullUrl2 = href2.startsWith('http') ? href2 : `${baseUrl}${href2}`;
-                if (isAddressBookCollection(text2, href2)) {
-                  return fullUrl2;
+        if (res.ok || res.status === 207) {
+          const text = await res.text();
+          const hrefs = extractFromXml(text, 'href');
+
+          for (const href of hrefs) {
+            if (href === principalHref) continue;
+            // Look for addressbook resourcetype or just any collection that ends with /
+            if (href.endsWith('/')) {
+              const fullUrl = href.startsWith('http') ? href : `${baseUrl}${href}`;
+
+              // Check if this is an addressbook collection
+              const resCheck = await fetchWithTimeout(fullUrl, {
+                method: 'PROPFIND',
+                headers: {
+                  'Authorization': authHeader,
+                  'Content-Type': 'application/xml; charset=utf-8',
+                  'Depth': '0',
+                },
+                body: `<?xml version="1.0" encoding="utf-8"?>
+<d:propfind xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">
+  <d:prop>
+    <d:resourcetype />
+    <d:displayname />
+  </d:prop>
+</d:propfind>`,
+              }, 10000);
+
+              if (resCheck.ok || resCheck.status === 207) {
+                const checkText = await resCheck.text();
+                // Check if it's an addressbook
+                if (/addressbook/i.test(checkText) || /card/i.test(checkText)) {
+                  return fullUrl;
                 }
-                // Return first child collection that could be an address book
-                if (href2.includes('contact') || href2.includes('address')) {
-                  return fullUrl2;
+                // If it contains .vcf references, it's an address book
+                if (/\.vcf/i.test(checkText)) {
+                  return fullUrl;
                 }
+                // Just return the first child collection — might be the address book
+                return fullUrl;
               }
             }
           }
         }
-      } catch {
-        // Try next path
-      }
+      } catch {}
     }
 
     return null;
@@ -351,7 +389,6 @@ Deno.serve(async (req) => {
     const text = await res.text();
     const contacts: any[] = [];
 
-    // Match .vcf hrefs — handle both d:href and href without namespace
     const hrefMatches = text.match(/<(?:[a-z]+:)?href[^>]*>([^<]+\.vcf[^<]*)<\/(?:[a-z]+:)?href>/gi) || [];
     const vcfHrefs = [...new Set(hrefMatches.map(m => m.replace(/<[^>]+>/g, '').trim()))];
 
@@ -370,9 +407,7 @@ Deno.serve(async (req) => {
           parsed.vcfUrl = vcfUrl;
           contacts.push(parsed);
         }
-      } catch {
-        // Skip failed contact
-      }
+      } catch {}
     }
 
     return contacts;
@@ -381,9 +416,8 @@ Deno.serve(async (req) => {
   // ─── CardDAV Push ───────────────────────────────────────────────
 
   async function pushContact(addressBookUrl: string, uid: string, vcard: string): Promise<string> {
-    // Ensure addressBookUrl ends with /
-    const baseUrl = addressBookUrl.endsWith('/') ? addressBookUrl : `${addressBookUrl}/`;
-    const vcfUrl = `${baseUrl}${uid}.vcf`;
+    const abUrl = addressBookUrl.endsWith('/') ? addressBookUrl : `${addressBookUrl}/`;
+    const vcfUrl = `${abUrl}${uid}.vcf`;
 
     const res = await fetchWithTimeout(vcfUrl, {
       method: 'PUT',
@@ -402,14 +436,11 @@ Deno.serve(async (req) => {
     return vcfUrl;
   }
 
-  // ─── CardDAV Delete ──────────────────────────────────────────────
-
   async function deleteContact(vcfUrl: string): Promise<boolean> {
     const res = await fetchWithTimeout(vcfUrl, {
       method: 'DELETE',
       headers: { 'Authorization': authHeader },
     }, 10000);
-
     return res.ok || res.status === 204;
   }
 
@@ -421,7 +452,6 @@ Deno.serve(async (req) => {
       if (abUrl) {
         return Response.json({ success: true, addressBookUrl: abUrl });
       } else {
-        // Return debug info
         let debugInfo: any = { carddavBase, nasUser: NAS_USER };
         try {
           const res = await fetchWithTimeout(`${carddavBase}/`, {
@@ -429,7 +459,7 @@ Deno.serve(async (req) => {
             headers: {
               'Authorization': authHeader,
               'Content-Type': 'application/xml; charset=utf-8',
-              'Depth': '1',
+              'Depth': '0',
             },
             body: `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">
@@ -437,11 +467,40 @@ Deno.serve(async (req) => {
     <d:displayname />
     <d:resourcetype />
     <d:current-user-principal />
+    <card:addressbook-home-set />
   </d:prop>
 </d:propfind>`,
           }, 10000);
-          debugInfo.status = res.status;
-          debugInfo.body = (await res.text()).substring(0, 1000);
+          debugInfo.rootStatus = res.status;
+          debugInfo.rootBody = (await res.text()).substring(0, 1500);
+
+          // Also try PROPFIND on the principal
+          if (debugInfo.rootBody) {
+            const principalMatch = debugInfo.rootBody.match(/<(?:d:)?current-user-principal[^>]*>[\s\S]*?<(?:d:)?href[^>]*>([^<]+)<\/(?:d:)?href>/i);
+            if (principalMatch) {
+              const principalHref = principalMatch[1].trim();
+              const principalUrl = `${baseUrl}${principalHref}`;
+              const res2 = await fetchWithTimeout(principalUrl, {
+                method: 'PROPFIND',
+                headers: {
+                  'Authorization': authHeader,
+                  'Content-Type': 'application/xml; charset=utf-8',
+                  'Depth': '1',
+                },
+                body: `<?xml version="1.0" encoding="utf-8"?>
+<d:propfind xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">
+  <d:prop>
+    <d:displayname />
+    <d:resourcetype />
+    <card:addressbook-home-set />
+  </d:prop>
+</d:propfind>`,
+              }, 10000);
+              debugInfo.principalUrl = principalUrl;
+              debugInfo.principalStatus = res2.status;
+              debugInfo.principalBody = (await res2.text()).substring(0, 1500);
+            }
+          }
         } catch (e: any) {
           debugInfo.error = e.message;
         }
@@ -500,7 +559,6 @@ Deno.serve(async (req) => {
       }
 
       const contacts = await listContacts(abUrl);
-
       const appContacts = contacts.filter(c => c.type !== 'external');
       const externalContacts = contacts.filter(c => c.type === 'external');
 
@@ -538,9 +596,7 @@ Deno.serve(async (req) => {
               }
             }
           }
-        } catch {
-          // Entity might have been deleted
-        }
+        } catch {}
       }
 
       for (const contact of externalContacts) {
@@ -579,9 +635,7 @@ Deno.serve(async (req) => {
               }
             }
           }
-        } catch {
-          // Skip if creation fails
-        }
+        } catch {}
       }
 
       return Response.json({
