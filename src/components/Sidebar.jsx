@@ -9,10 +9,11 @@ export default function Sidebar() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const todayCount = useTodayEventCount();
-  const [collapsed, setCollapsed] = useState({ System: true });
+  const [collapsed, setCollapsed] = useState({ Mehr: true });
 
   const toggle = (title) => setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }));
 
+  // Admin sees everything (Backoffice + Operativ)
   const adminSections = [
     {
       title: 'Schnellzugriff', collapsible: false,
@@ -60,54 +61,32 @@ export default function Sidebar() {
     },
   ];
 
-  const userSections = [
+  // Sandra sees only operative tools — backoffice hidden
+  const sandraSections = [
     {
-      title: 'Schnellzugriff', collapsible: false,
+      title: 'Täglich', collapsible: false,
       items: [
         { to: '/', label: 'Heute', icon: Home },
-        { to: '/projekte', label: 'Projekte', icon: FolderKanban },
-        { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
-        { to: '/kalender', label: 'Kalender', icon: CalendarDays, badge: todayCount },
-      ],
-    },
-    {
-      title: 'Verwaltung', collapsible: true,
-      items: [
-        { to: '/kontakte', label: 'Kontakte', icon: Users },
-        { to: '/angebote', label: 'Angebote', icon: FileText },
-        { to: '/vertraege', label: 'Verträge', icon: Shield },
-        { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
-      ],
-    },
-    {
-      title: 'Zeit & Geld', collapsible: true,
-      items: [
         { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
-        { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
-        { to: '/finanzen', label: 'Finanzen', icon: Wallet },
-        { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
-        { to: '/rechnungs-matching', label: 'Rechnungs-Matching', icon: FileSpreadsheet },
-      ],
-    },
-    {
-      title: 'Operativ', collapsible: true,
-      items: [
-        { to: '/telefon', label: 'Telefonnotizen', icon: Phone },
+        { to: '/projekte', label: 'Projekte', icon: FolderKanban },
         { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
-        { to: '/fahrten', label: 'Fahrtenliste', icon: Car },
-        { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
+        { to: '/fahrten', label: 'Fahrten', icon: Car },
+        { to: '/telefon', label: 'Telefon', icon: Phone },
+        { to: '/kalender', label: 'Kalender', icon: CalendarDays, badge: todayCount },
+        { to: '/kontakte', label: 'Kontakte', icon: Users },
       ],
     },
     {
-      title: 'System', collapsible: true,
+      title: 'Mehr', collapsible: true,
       items: [
-        { to: '/vorlagen', label: 'Vorlagen', icon: LayoutTemplate },
-        { to: '/nas-sync', label: 'NAS Sync', icon: HardDrive },
+        { to: '/angebote', label: 'Angebote', icon: FileText },
+        { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
+        { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
       ],
     },
   ];
 
-  const sections = isAdmin ? adminSections : userSections;
+  const sections = isAdmin ? adminSections : sandraSections;
 
   const renderItem = (item) => (
     <NavLink
@@ -168,7 +147,7 @@ export default function Sidebar() {
               <div
                 className={cn(
                   'overflow-hidden transition-all duration-200',
-                  isCollapsed ? 'max-h-0' : 'max-h-[500px]'
+                  isCollapsed ? 'max-h-0' : 'max-h-[600px]'
                 )}
               >
                 <div className="space-y-0.5">{section.items.map(renderItem)}</div>

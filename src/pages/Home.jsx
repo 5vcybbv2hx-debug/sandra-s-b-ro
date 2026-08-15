@@ -5,7 +5,7 @@ import { useTimer } from '@/lib/TimerContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Play, Square, Plus, Phone, CheckCircle2 } from 'lucide-react';
+import { Play, Square, Plus, Phone, CheckCircle2, Car } from 'lucide-react';
 import { todayISO } from '@/lib/format';
 import { toast } from 'sonner';
 import MorgenroutineCard from '@/components/MorgenroutineCard';
@@ -27,17 +27,19 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const [aufgaben, notizen, projekte, firmen] = await Promise.all([
+      const [aufgaben, notizen, projekte, firmen, fahrten] = await Promise.all([
         base44.entities.Aufgabe.filter({ erledigt: false }),
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
         base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 10),
         base44.entities.Firma.list('-name', 200),
+        base44.entities.Fahrt.filter({ datum: todayISO() }, '-created_date', 10),
       ]);
       const focused = aufgaben.filter(t => t.heute_fokussiert);
       const unfocused = aufgaben.filter(t => !t.heute_fokussiert);
       const topTasks = [...focused, ...unfocused].slice(0, 3);
       const callbacks = notizen.filter(n => n.naechster_schritt).slice(0, 3);
-      setD({ topTasks, callbacks, projects: projekte.slice(0, 5), firmen });
+      const todayFahrten = fahrten || [];
+      setD({ topTasks, callbacks, projects: projekte.slice(0, 5), firmen, todayFahrten });
     } catch (e) {
       console.error(e);
       toast.error('Dashboard konnte nicht geladen werden');
@@ -120,6 +122,26 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* 2.5 Heutige Fahrten */}
+      {d.todayFahrten.length > 0 && (
+        <Card className="p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Car className="w-5 h-5 text-brand" />
+            <h2 className="font-semibold">Heutige Fahrten ({d.todayFahrten.length})</h2>
+          </div>
+          <div className="space-y-1">
+            {d.todayFahrten.map(f => (
+              <div key={f.id} className="flex items-center gap-3 py-2 min-h-[40px] text-sm">
+                <span className="text-muted-foreground font-mono text-xs">{f.kilometer || '?'} km</span>
+                <span className="font-medium flex-1 min-w-0 truncate">{f.startort || f.ziel || 'Fahrt'}</span>
+                {f.ziel && f.startort && <span className="text-muted-foreground truncate">→ {f.ziel}</span>}
+              </div>
+            ))}
+            <Link to="/fahrten" className="block text-center text-sm text-brand hover:underline pt-2">Alle Fahrten</Link>
+          </div>
+        </Card>
+      )}
 
       {/* 3. Heute im Fokus */}
       <Card className="p-5 shadow-sm">
