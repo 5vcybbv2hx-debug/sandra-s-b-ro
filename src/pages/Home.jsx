@@ -1,191 +1,197 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
+import { useTimer } from '@/lib/TimerContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, Phone, Plus, TrendingUp, GraduationCap, CalendarClock } from 'lucide-react';
-import Morgenroutine from '@/components/Morgenroutine';
-import AufmerksamkeitSection from '@/components/AufmerksamkeitSection';
-import { formatCurrency, todayISO, currentMonth } from '@/lib/format';
-import { getWeeklyCapacity, getDefaultStundensatz, getDefaultSteuerProzent, getMonthlyUmsatzziel } from '@/lib/settings';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Play, Square, Plus, Phone, CheckCircle2 } from 'lucide-react';
+import { todayISO } from '@/lib/format';
 import { toast } from 'sonner';
+import MorgenroutineCard from '@/components/MorgenroutineCard';
 
-const prioBadge = { A: 'bg-red-50 text-red-600', B: 'bg-orange-50 text-orange-600', C: 'bg-gray-100 text-gray-500' };
-
-function isSameDayLocal(a, b) {
-  return a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+function fmtElapsed(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
 export default function Home() {
-  const { user } = useAuth();
-  const [showMorgenroutine, setShowMorgenroutine] = useState(false);
+  const { activeTimer, elapsed, project: timerProject, startTimer, stopTimer } = useTimer();
   const [d, setD] = useState(null);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState('');
-  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    if (user?.role === 'admin') return;
-    const last = localStorage.getItem('sandra_morgenroutine');
-    if (last !== new Date().toISOString().split('T')[0]) setShowMorgenroutine(true);
-    loadData();
-  }, [user]);
-
-  if (showMorgenroutine) return <Morgenroutine onComplete={() => { setShowMorgenroutine(false); loadData(); }} />;
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
-    setLoadError(false);
     try {
-      const results = await Promise.allSettled([
+      const [aufgaben, notizen, projekte, firmen] = await Promise.all([
         base44.entities.Aufgabe.filter({ erledigt: false }),
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
-        base44.entities.Projekt.filter({ status: 'Aktiv' }, '-deadline', 50),
+        base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 10),
         base44.entities.Firma.list('-name', 200),
-        base44.entities.Zeiteintrag.list('-datum', 2000),
-        base44.entities.Projektphase.list('-updated_date', 500),
-        base44.entities.Kapazitaetseinstellung.list(),
-        base44.entities.Phasen_Erfahrungswerte.list('-projektart', 200),
-        base44.entities.KalenderEvent.list('-start_datetime', 200),
       ]);
-      const failed = results.filter(r => r.status === 'rejected');
-      if (failed.length > 0) {
-        console.error('Dashboard partial load errors:', failed.map(f => f.reason));
-        if (failed.length === results.length) {
-          setLoadError(true);
-          toast.error('Daten konnten nicht geladen werden. Bitte später erneut versuchen.');
-          setLoading(false);
-          return;
-        }
-        toast.warning(`${results.length - failed.length}/${results.length} Datenquellen geladen. Einige Bereiche könnten unvollständig sein.`);
-      }
-      const [aufgaben, notizen, projekte, firmen, zeiten, phasen, kap, erf, kalEvents] = results.map(r => r.status === 'fulfilled' ? r.value : []);
       const focused = aufgaben.filter(t => t.heute_fokussiert);
-      const unfocused = aufgaben.filter(t => !t.heute_fokussiert).sort((a, b) => ({ A: 0, B: 1, C: 2 }[a.prioritaet] ?? 3) - ({ A: 0, B: 1, C: 2 }[b.prioritaet] ?? 3));
+      const unfocused = aufgaben.filter(t => !t.heute_fokussiert);
       const topTasks = [...focused, ...unfocused].slice(0, 3);
-      const callbacks = notizen.filter(n => n.naechster_schritt);
-      const now = new Date(); const dow = (now.getDay() + 6) % 7;
-      const monday = new Date(now); monday.setDate(now.getDate() - dow); monday.setHours(0,0,0,0);
-      const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
-      const weekHours = zeiten.filter(z => z.datum && !z.timer_laeuft && (() => { const dd = new Date(z.datum); return dd >= monday && dd <= sunday; })()).reduce((s, z) => s + (z.stunden || 0), 0);
-      const monthStr = currentMonth();
-      const monthHours = zeiten.filter(z => z.datum?.startsWith(monthStr) && !z.timer_laeuft).reduce((s, z) => s + (z.stunden || 0), 0);
-      const sRate = kap[0]?.stundensatz_standard || getDefaultStundensatz();
-      const sPct = kap[0]?.steuerrueckstellung_prozent || getDefaultSteuerProzent();
-      const mGoal = kap[0]?.monatliches_umsatzziel || getMonthlyUmsatzziel();
-      const wGoal = kap[0]?.woechentliche_zielstunden || getWeeklyCapacity();
-      setD({ topTasks, callbacks, projects: projekte.slice(0, 6), firmen, zeiten, phasen, weekHours, wGoal, monthRevenue: monthHours * sRate, steuer: monthHours * sRate * sPct / 100, mGoal, openTasks: aufgaben.length, openCallbacks: callbacks.length, activeProjects: projekte.length, erfahrungswerte: erf, kalenderEvents: kalEvents });
-    } catch (e) { console.error(e); setLoadError(true); toast.error('Unerwarteter Fehler beim Laden. Bitte Seite neu laden.'); } finally { setLoading(false); }
+      const callbacks = notizen.filter(n => n.naechster_schritt).slice(0, 3);
+      setD({ topTasks, callbacks, projects: projekte.slice(0, 5), firmen });
+    } catch (e) {
+      console.error(e);
+      toast.error('Dashboard konnte nicht geladen werden');
+    } finally { setLoading(false); }
   };
 
-  const toggleTask = async (t) => { await base44.entities.Aufgabe.update(t.id, { erledigt: true, erledigt_am: todayISO(), heute_fokussiert: false }); loadData(); };
-  const toggleCallback = async (n) => { await base44.entities.Telefonnotiz.update(n.id, { erledigt: true }); loadData(); };
-  const quickAdd = async () => { if (!newTask.trim()) return; await base44.entities.Aufgabe.create({ titel: newTask, prioritaet: 'B', heute_fokussiert: true, erledigt: false }); setNewTask(''); loadData(); };
+  const toggleTask = async (t) => {
+    await base44.entities.Aufgabe.update(t.id, { erledigt: true, erledigt_am: todayISO(), heute_fokussiert: false });
+    loadData();
+  };
+  const toggleCallback = async (n) => {
+    await base44.entities.Telefonnotiz.update(n.id, { erledigt: true });
+    loadData();
+  };
+  const quickAdd = async () => {
+    if (!newTask.trim()) return;
+    await base44.entities.Aufgabe.create({ titel: newTask, prioritaet: 'B', heute_fokussiert: true, erledigt: false });
+    setNewTask('');
+    loadData();
+  };
 
   const firmaName = (fid) => d?.firmen.find(f => f.id === fid)?.name || '';
-  const phaseProgress = (pid, phase) => { const ph = d?.phasen.find(p => p.projekt_id === pid && p.phase === (phase || 'Entwurf')); if (!ph) return { ist: 0, geschaetzt: 0 }; const ist = d.zeiten.filter(z => z.phase_id === ph.id && !z.timer_laeuft).reduce((s, z) => s + (z.stunden || 0), 0); return { ist, geschaetzt: ph.stunden_geschaetzt || 0 }; };
+
+  const handleStartTimer = async (proj) => {
+    await startTimer(proj.id, '', '');
+    toast.success(`Timer gestartet für ${proj.projekt_name}`);
+  };
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
-  const dateStr = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  if (loadError && !d) return (
-    <div className="p-8 max-w-md mx-auto text-center space-y-4">
-      <p className="text-muted-foreground">Dashboard konnte nicht geladen werden.</p>
-      <button onClick={() => { setLoading(true); loadData(); }} className="bg-brand text-white rounded-xl px-6 py-3 min-h-[48px] font-medium">Erneut versuchen</button>
-    </div>
-  );
-  if (loading || !d) return <div className="p-8 text-center text-muted-foreground">Lade Dashboard...</div>;
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Lade Dashboard...</div>;
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-5">
-        <AufmerksamkeitSection />
-
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">{greeting}, Sandra</h1>
-        <p className="text-muted-foreground capitalize">{dateStr}</p>
-        <p className="text-sm text-muted-foreground mt-1">Du hast <b className="text-foreground">{d.openTasks} offene Aufgaben</b>, <b className="text-foreground">{d.openCallbacks} offene Rückrufe</b>, <b className="text-foreground">{d.activeProjects} aktive Projekte</b></p>
+    <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-4">
+      <div>
+        <h1 className="text-xl md:text-2xl font-bold">{greeting}, Sandra</h1>
       </div>
 
-      <Card className="p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-4"><CheckCircle2 className="w-5 h-5 text-brand" /><h2 className="font-semibold text-lg">Heute im Fokus</h2></div>
-        {d.topTasks.length === 0 ? <p className="text-center py-4 text-status-abgeschlossen font-medium">Nichts geplant — relax oder an größere Projekte arbeiten 🌿</p> : (
-          <div className="space-y-2">{d.topTasks.map(t => (
-            <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-cardbg min-h-[48px]">
-              <button onClick={() => toggleTask(t)} className="w-6 h-6 rounded-full border-2 border-brand shrink-0 hover:bg-brand-light" />
-              <div className="flex-1 min-w-0"><span className="font-medium block truncate">{t.titel}</span>{t.projekt_id && <span className="text-xs text-muted-foreground">{firmaName(t.projekt_id)}</span>}</div>
-              <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', prioBadge[t.prioritaet] || prioBadge.C)}>{t.prioritaet}</span>
+      {/* 1. Aktiver Timer */}
+      {activeTimer && (
+        <Card className="p-5 bg-brand text-white shadow-lg border-0">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-white/70 uppercase tracking-wide">Timer läuft</p>
+              <p className="font-semibold text-lg truncate">{timerProject?.projekt_name || 'Projekt'}</p>
+              <p className="text-3xl font-bold font-mono tabular-nums mt-1">{fmtElapsed(elapsed)}</p>
             </div>
-          ))}</div>
-        )}
-        <div className="mt-3 flex gap-2"><Input value={newTask} onChange={e => setNewTask(e.target.value)} onKeyDown={e => e.key === 'Enter' && quickAdd()} placeholder="Aufgabe für heute hinzufügen..." className="min-h-[48px]" /><button onClick={quickAdd} className="bg-brand text-white rounded-xl px-4 min-h-[48px] shrink-0"><Plus className="w-5 h-5" /></button></div>
-      </Card>
-
-      <Card className="p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-4"><Phone className="w-5 h-5 text-accent" /><h2 className="font-semibold text-lg">Offene Rückrufe</h2></div>
-        {d.callbacks.length === 0 ? <p className="text-center py-4 text-status-abgeschlossen font-medium">Keine offenen Rückrufe — perfekt! ✓</p> : (
-          <div className="space-y-2">{d.callbacks.map(n => (
-            <div key={n.id} className="flex items-center gap-3 p-3 bg-cardbg rounded-xl min-h-[48px]">
-              <button onClick={() => toggleCallback(n)} className="w-6 h-6 rounded-full border-2 border-accent shrink-0 hover:bg-accent-light" />
-              <div className="flex-1 min-w-0"><div className="flex items-center gap-2"><span className="font-medium truncate">{n.kontakt_name}</span>{n.telefonnummer && <a href={`tel:${n.telefonnummer}`} className="text-xs text-brand hover:underline shrink-0">{n.telefonnummer}</a>}</div><p className="text-sm text-muted-foreground truncate">{n.naechster_schritt}</p></div>
-            </div>
-          ))}</div>
-        )}
-      </Card>
-
-      <Card className="p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2"><CalendarClock className="w-5 h-5 text-brand" /><h2 className="font-semibold text-lg">Heute im Kalender</h2></div>
-          <Link to="/kalender" className="text-sm text-brand hover:underline">Zum Kalender</Link>
-        </div>
-        {(() => {
-          const today = new Date();
-          const todayEvts = (d.kalenderEvents || []).filter(e => e.start_datetime && e.sync_status !== 'deleted_outlook' && isSameDayLocal(new Date(e.start_datetime), today)).sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
-          if (todayEvts.length === 0) return <p className="text-center py-3 text-muted-foreground text-sm">Heute keine Termine</p>;
-          return (
-            <div className="space-y-2">{todayEvts.map(e => (
-              <Link key={e.id} to="/kalender" className={cn('flex items-center gap-3 p-3 rounded-xl min-h-[48px]', e.source === 'outlook' ? 'bg-blue-50' : 'bg-brand-light')}>
-                <CalendarClock className={cn('w-4 h-4 shrink-0', e.source === 'outlook' ? 'text-blue-500' : 'text-brand')} />
-                <div className="flex-1 min-w-0"><p className="font-medium truncate">{e.subject}</p>{e.location && <p className="text-xs text-muted-foreground truncate">{e.location}</p>}</div>
-                <span className="text-xs text-muted-foreground shrink-0">{e.is_all_day ? 'ganztägig' : new Date(e.start_datetime).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
-              </Link>
-            ))}</div>
-          );
-        })()}
-      </Card>
-
-      <Card className="p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4"><h2 className="font-semibold text-lg">Aktive Projekte</h2><Link to="/projekte" className="text-sm text-brand hover:underline">Alle Projekte</Link></div>
-        <div className="grid sm:grid-cols-2 gap-3">{d.projects.map(p => {
-          const prog = phaseProgress(p.id, p.aktuelle_phase);
-          const days = p.deadline ? Math.ceil((new Date(p.deadline) - new Date()) / 86400000) : null;
-          return (<Link key={p.id} to={`/projekte/${p.id}`} className="block p-4 bg-cardbg rounded-xl hover:bg-brand-light transition-colors min-h-[48px]"><p className="font-medium truncate">{p.projekt_name}</p><p className="text-xs text-muted-foreground truncate">{firmaName(p.firma_id)}</p><div className="flex items-center gap-2 mt-2"><span className="text-xs bg-brand-light text-brand-dark px-2 py-0.5 rounded-full">{p.aktuelle_phase || 'Entwurf'}</span>{prog.geschaetzt > 0 && <span className="text-xs text-muted-foreground">{prog.ist.toFixed(1)}/{prog.geschaetzt}h</span>}{days !== null && days <= 7 && <span className={cn('text-xs font-medium', days < 0 ? 'text-red-600' : 'text-amber-600')}>{days < 0 ? 'überfällig' : `${days}d`}</span>}</div></Link>);
-        })}</div>
-      </Card>
-
-      <Card className="p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-4"><TrendingUp className="w-5 h-5 text-brand" /><h2 className="font-semibold text-lg">Diese Woche</h2></div>
-        <div className="grid grid-cols-3 gap-4">
-          <div><p className="text-xs text-muted-foreground">Stunden</p><p className="text-lg font-bold text-brand-dark">{d.weekHours.toFixed(1)} / {d.wGoal}h</p></div>
-          <div><p className="text-xs text-muted-foreground">Umsatz (Monat)</p><p className="text-lg font-bold text-brand-dark">{formatCurrency(d.monthRevenue)}</p></div>
-          <div><p className="text-xs text-muted-foreground">Steuerrücklage</p><p className="text-lg font-bold text-destructive">{formatCurrency(d.steuer)}</p></div>
-        </div>
-        <div className="mt-3"><div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Monatsziel</span><span>{formatCurrency(d.monthRevenue)} / {formatCurrency(d.mGoal)}</span></div><Progress value={Math.min(100, d.mGoal > 0 ? (d.monthRevenue / d.mGoal) * 100 : 0)} className="h-2" /></div>
-      </Card>
-
-      {d.erfahrungswerte && d.erfahrungswerte.length > 0 && (
-        <Card className="p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-3"><GraduationCap className="w-5 h-5 text-brand" /><h2 className="font-semibold text-lg">Lernfortschritt</h2></div>
-          <div className="grid grid-cols-3 gap-4">
-            <div><p className="text-xs text-muted-foreground">Erfahrungswerte</p><p className="text-lg font-bold text-brand-dark">{d.erfahrungswerte.length}</p></div>
-            <div><p className="text-xs text-muted-foreground">Projektarten</p><p className="text-lg font-bold text-brand-dark">{new Set(d.erfahrungswerte.map(e => e.projektart)).size}</p></div>
-            <div><p className="text-xs text-muted-foreground">ø Vertrauen</p><p className="text-lg font-bold text-brand-dark">{(d.erfahrungswerte.reduce((s, e) => s + (e.vertrauens_score || 0), 0) / d.erfahrungswerte.length * 100).toFixed(0)}%</p></div>
+            <Button size="lg" onClick={stopTimer} className="min-h-[56px] min-w-[56px] shrink-0 bg-white text-brand hover:bg-white/90 border-0">
+              <Square className="w-6 h-6 fill-current" />
+            </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">Je mehr Projekte du abschließt, desto präziser werden die Schätzvorschläge. ↗</p>
         </Card>
       )}
+
+      {/* 2. Projekte mit Timer-Start */}
+      <div>
+        <h2 className="text-sm font-medium text-muted-foreground px-1 mb-2">Projekte</h2>
+        <div className="space-y-2">
+          {d.projects.map(p => (
+            <Card key={p.id} className="p-0 shadow-sm overflow-hidden">
+              <div className="flex items-center gap-1">
+                <Link to={`/projekte/${p.id}`} className="flex-1 min-w-0 p-4">
+                  <p className="font-semibold truncate">{p.projekt_name}</p>
+                  <p className="text-sm text-muted-foreground truncate">{firmaName(p.firma_id)}</p>
+                </Link>
+                <button
+                  onClick={() => handleStartTimer(p)}
+                  disabled={!!activeTimer}
+                  className="shrink-0 w-12 h-12 m-2 rounded-xl bg-brand-light text-brand-dark hover:bg-brand hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                  aria-label={`Timer starten für ${p.projekt_name}`}
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                </button>
+              </div>
+            </Card>
+          ))}
+          {d.projects.length === 0 && (
+            <p className="text-center py-4 text-muted-foreground text-sm">Keine aktiven Projekte</p>
+          )}
+        </div>
+      </div>
+
+      {/* 3. Heute im Fokus */}
+      <Card className="p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <CheckCircle2 className="w-5 h-5 text-brand" />
+          <h2 className="font-semibold">Heute im Fokus</h2>
+        </div>
+        {d.topTasks.length === 0 ? (
+          <p className="text-center py-3 text-muted-foreground text-sm">Nichts geplant — relax 🌿</p>
+        ) : (
+          <div className="space-y-1">
+            {d.topTasks.map(t => (
+              <div key={t.id} className="flex items-center gap-3 py-2 min-h-[48px]">
+                <button
+                  onClick={() => toggleTask(t)}
+                  className="w-6 h-6 rounded-full border-2 border-brand shrink-0 hover:bg-brand-light transition-colors"
+                  aria-label="Erledigen"
+                />
+                <span className="font-medium flex-1 min-w-0 truncate">{t.titel}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-3 flex gap-2">
+          <Input
+            value={newTask}
+            onChange={e => setNewTask(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && quickAdd()}
+            placeholder="Aufgabe hinzufügen..."
+            className="min-h-[44px]"
+          />
+          <Button onClick={quickAdd} size="icon" className="min-h-[44px] min-w-[44px] bg-brand hover:bg-brand-dark shrink-0">
+            <Plus className="w-5 h-5" />
+          </Button>
+        </div>
+      </Card>
+
+      {/* 4. Offene Rückrufe */}
+      <Card className="p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <Phone className="w-5 h-5 text-accent" />
+          <h2 className="font-semibold">Offene Rückrufe</h2>
+        </div>
+        {d.callbacks.length === 0 ? (
+          <p className="text-center py-3 text-muted-foreground text-sm">Keine offenen Rückrufe ✓</p>
+        ) : (
+          <div className="space-y-1">
+            {d.callbacks.map(n => (
+              <div key={n.id} className="flex items-center gap-3 py-2 min-h-[48px]">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{n.kontakt_name}</p>
+                  <p className="text-sm text-muted-foreground truncate">{n.naechster_schritt}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleCallback(n)}
+                  className="min-h-[36px] shrink-0 text-status-abgeschlossen border-status-abgeschlossen/30 hover:bg-status-abgeschlossen/10"
+                >
+                  Erledigt
+                </Button>
+              </div>
+            ))}
+            <Link to="/telefon" className="block text-center text-sm text-brand hover:underline pt-2">
+              Alle anzeigen
+            </Link>
+          </div>
+        )}
+      </Card>
+
+      {/* Morgenroutine — einklappbare Card */}
+      <MorgenroutineCard />
     </div>
   );
 }

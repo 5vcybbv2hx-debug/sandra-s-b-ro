@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, Calendar, CalendarDays, Euro, BarChart3, Settings } from 'lucide-react';
+import { Home, FolderKanban, Phone, Calendar, CalendarDays, Euro, BarChart3, Settings, Clock } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
@@ -16,9 +16,9 @@ export default function BottomNav() {
     { to: '/einstellungen', label: 'Einstell.', icon: Settings },
   ] : [
     { to: '/', label: 'Heute', icon: Home },
+    { to: '/zeiten', label: 'Zeiten', icon: Clock },
     { to: '/projekte', label: 'Projekte', icon: FolderKanban },
     { to: '/kalender', label: 'Kalender', icon: CalendarDays, badge: todayCount },
-    { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
     { to: '/telefon', label: 'Telefon', icon: Phone },
   ];
   return (

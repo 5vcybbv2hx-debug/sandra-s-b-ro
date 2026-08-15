@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Plus, Phone, CheckSquare, Clock, X } from 'lucide-react';
+import { Plus, Phone, CheckSquare, Car, X } from 'lucide-react';
 import PhoneModal from './PhoneModal';
 import QuickTaskModal from './QuickTaskModal';
-import QuickTimeModal from './QuickTimeModal';
+import QuickDriveModal from './QuickDriveModal';
 import { cn } from '@/lib/utils';
 
 export default function QuickCaptureFAB() {
@@ -12,7 +12,7 @@ export default function QuickCaptureFAB() {
   const options = [
     { id: 'phone', label: 'Telefonnotiz', icon: Phone, color: 'bg-accent hover:bg-accent-dark' },
     { id: 'task', label: 'Aufgabe', icon: CheckSquare, color: 'bg-brand hover:bg-brand-dark' },
-    { id: 'time', label: 'Stunden buchen', icon: Clock, color: 'bg-status-abgeschlossen hover:bg-green-600' },
+    { id: 'drive', label: 'Fahrt', icon: Car, color: 'bg-status-abgeschlossen hover:bg-green-600' },
   ];
 
   return (
@@ -31,7 +31,7 @@ export default function QuickCaptureFAB() {
       </div>
       {modal === 'phone' && <PhoneModal open={true} onOpenChange={() => setModal(null)} />}
       {modal === 'task' && <QuickTaskModal open={true} onOpenChange={() => setModal(null)} />}
-      {modal === 'time' && <QuickTimeModal open={true} onOpenChange={() => setModal(null)} />}
+      {modal === 'drive' && <QuickDriveModal open={true} onOpenChange={() => setModal(null)} />}
     </>
   );
 }
