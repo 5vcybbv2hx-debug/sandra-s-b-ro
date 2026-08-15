@@ -27,8 +27,11 @@ export default function AnsprechpartnerModal({ open, onClose, onCreated, editPer
     setSaving(true);
     try {
       const payload = { ...form, firma_id: form.firma_id || undefined };
-      if (editPerson) { await base44.entities.Ansprechpartner.update(editPerson.id, payload); toast.success('Person aktualisiert'); }
-      else { await base44.entities.Ansprechpartner.create(payload); toast.success('Person erstellt'); }
+      let saved;
+      if (editPerson) { saved = await base44.entities.Ansprechpartner.update(editPerson.id, payload); toast.success('Person aktualisiert'); }
+      else { saved = await base44.entities.Ansprechpartner.create(payload); toast.success('Person erstellt'); }
+      const firmaName = saved.firma_id ? firmen.find(f => f.id === saved.firma_id)?.name : '';
+      try { await base44.functions.invoke('nasContacts', { action: 'push', type: 'ansprechpartner', entity: saved, firmaName }); } catch (e) { toast.error('NAS Sync fehlgeschlagen'); }
       onCreated(); onClose();
     } catch (e) { toast.error('Fehler'); } finally { setSaving(false); }
   };

@@ -20,8 +20,10 @@ export default function FirmaModal({ open, onClose, onCreated, editFirma }) {
     if (!form.name.trim()) return;
     setSaving(true);
     try {
-      if (editFirma) { await base44.entities.Firma.update(editFirma.id, form); toast.success('Firma aktualisiert'); }
-      else { await base44.entities.Firma.create(form); toast.success('Firma erstellt'); }
+      let saved;
+      if (editFirma) { saved = await base44.entities.Firma.update(editFirma.id, form); toast.success('Firma aktualisiert'); }
+      else { saved = await base44.entities.Firma.create(form); toast.success('Firma erstellt'); }
+      try { await base44.functions.invoke('nasContacts', { action: 'push', type: 'firma', entity: saved }); } catch (e) { toast.error('NAS Sync fehlgeschlagen'); }
       onCreated(); onClose();
     } catch (e) { toast.error('Fehler'); } finally { setSaving(false); }
   };

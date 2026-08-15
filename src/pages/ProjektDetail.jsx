@@ -3,7 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Building2, User, Check, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Building2, User, Check, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import ProjektEditModal from '@/components/projekt/ProjektEditModal';
+import { toast } from 'sonner';
 import ProjektPhasen from '@/components/projekt/ProjektPhasen';
 import ProjektDokumente from '@/components/projekt/ProjektDokumente';
 import ProjektZeitGeld from '@/components/projekt/ProjektZeitGeld';
@@ -21,6 +25,8 @@ export default function ProjektDetail() {
   const [ansprechpartner, setAnsprechpartner] = useState(null);
   const [zeiten, setZeiten] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
 
   useEffect(() => { loadProjekt(); }, [id]);
 
@@ -33,6 +39,15 @@ export default function ProjektDetail() {
       const z = await base44.entities.Zeiteintrag.filter({ projekt_id: id }, '-datum', 500);
       setZeiten(z.filter((x) => !x.timer_laeuft));
     } catch (e) { console.error(e); } finally { setLoading(false); }
+  };
+
+  const handleArchive = async () => {
+    try {
+      await base44.entities.Projekt.update(id, { status: 'Abgeschlossen' });
+      toast.success('Projekt archiviert');
+      setShowArchive(false);
+      loadProjekt();
+    } catch (e) { toast.error('Fehler beim Archivieren'); }
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Lade Projekt...</div>;
@@ -52,7 +67,11 @@ export default function ProjektDetail() {
             {firma && <Link to={`/firmen/${firma.id}`} className="inline-flex items-center gap-1 text-sm text-brand hover:underline"><Building2 className="w-3.5 h-3.5" /> {firma.name}</Link>}
           </div>
         </div>
-        <StatusBadge status={projekt.status} />
+        <div className="flex items-center gap-2 shrink-0">
+          <StatusBadge status={projekt.status} />
+          <Button variant="outline" className="h-[44px] w-[44px] p-0" onClick={() => setShowEdit(true)}><Edit2 className="w-4 h-4" /></Button>
+          <Button variant="outline" className="h-[44px] w-[44px] p-0 text-destructive hover:bg-destructive/10" onClick={() => setShowArchive(true)}><Trash2 className="w-4 h-4" /></Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 text-sm py-1">
@@ -97,6 +116,20 @@ export default function ProjektDetail() {
         <TabsContent value="zeitgeld"><ProjektZeitGeld projekt={projekt} onUpdate={loadProjekt} /></TabsContent>
         <TabsContent value="aktivitaet"><ProjektAktivitaet projekt={projekt} /></TabsContent>
       </Tabs>
+
+      {showEdit && <ProjektEditModal open={showEdit} onClose={() => setShowEdit(false)} onSaved={loadProjekt} editProjekt={projekt} />}
+      <AlertDialog open={showArchive} onOpenChange={setShowArchive}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Projekt archivieren?</AlertDialogTitle>
+            <AlertDialogDescription>Das Projekt wird als "Abgeschlossen" markiert. Es wird nicht gelöscht und bleibt weiterhin sichtbar.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-[44px]">Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchive} className="min-h-[44px] bg-destructive hover:bg-destructive/90 text-white">Archivieren</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
