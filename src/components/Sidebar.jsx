@@ -9,7 +9,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const todayCount = useTodayEventCount();
-  const [collapsed, setCollapsed] = useState({ Mehr: true });
+  const [collapsed, setCollapsed] = useState({ Verwaltung: true, 'Zeit & Geld': true, Operativ: true, System: true, Mehr: true });
 
   const toggle = (title) => setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }));
 
