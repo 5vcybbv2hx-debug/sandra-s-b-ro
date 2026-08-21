@@ -33,9 +33,10 @@
       "enum": [
         "Wohnbau",
         "Gewerbebau",
-        "\u00d6ffentliches Bauvorhaben",
+        "Öffentliches Bauvorhaben",
         "Umbau/Sanierung",
-        "Sonstiges"
+        "Sonstiges",
+        "Intern"
       ],
       "default": "Sonstiges"
     },
@@ -71,10 +72,10 @@
       "type": "string",
       "title": "Abrechnungsart",
       "enum": [
-        "St\u00fcndlich",
+        "Stündlich",
         "Pauschal"
       ],
-      "default": "St\u00fcndlich"
+      "default": "Stündlich"
     },
     "pauschalbetrag": {
       "type": "number",
@@ -83,7 +84,7 @@
     },
     "geschaetzte_stunden_gesamt": {
       "type": "number",
-      "title": "Gesch\u00e4tzte Stunden Gesamt",
+      "title": "Geschätzte Stunden Gesamt",
       "default": 0
     },
     "abgerechnete_stunden": {
@@ -119,6 +120,11 @@
         "org"
       ],
       "default": "team"
+    },
+    "is_internal": {
+      "type": "boolean",
+      "title": "Internes Projekt",
+      "default": false
     }
   },
   "required": [
