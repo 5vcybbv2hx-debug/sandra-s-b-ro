@@ -5,7 +5,7 @@ import { useTimer } from '@/lib/TimerContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Play, Square, Plus, Phone, CheckCircle2, Car, Pin, PinOff } from 'lucide-react';
+import { Play, Square, Plus, Phone, CheckCircle2, Car, Pin, PinOff, ShoppingBag, AlertCircle } from 'lucide-react';
 import { todayISO, daysAgoISO } from '@/lib/format';
 import { toast } from 'sonner';
 import MorgenroutineCard from '@/components/MorgenroutineCard';
@@ -28,13 +28,14 @@ export default function Home() {
   const loadData = async () => {
     try {
       const since = daysAgoISO(30);
-      const [aufgaben, notizen, projekte, firmen, fahrten, zeiteintraege] = await Promise.all([
+      const [aufgaben, notizen, projekte, firmen, fahrten, zeiteintraege, bestellungen] = await Promise.all([
         base44.entities.Aufgabe.filter({ erledigt: false }),
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
         base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 30),
         base44.entities.Firma.list('-name', 200),
         base44.entities.Fahrt.filter({ datum: todayISO() }, '-created_date', 10),
         base44.entities.Zeiteintrag.filter({}, '-datum', 200).then(all => all.filter(z => z.datum >= since)).catch(() => []),
+        base44.entities.Bestellliste.filter({ status: 'Offen' }, '-created_date', 10).catch(() => []),
       ]);
       const focused = aufgaben.filter(t => t.heute_fokussiert);
       const unfocused = aufgaben.filter(t => !t.heute_fokussiert);
@@ -73,7 +74,7 @@ export default function Home() {
         stampInfo[id] = { count: recentStampCounts[id], lastDate: recentStampDate[id] };
       });
 
-      setD({ topTasks, callbacks, projects: smartProjects, firmen, todayFahrten, stampInfo, pinnedIds: [...pinnedIds] });
+      setD({ topTasks, callbacks, projects: smartProjects, firmen, todayFahrten, stampInfo, pinnedIds: [...pinnedIds], bestellungen: bestellungen || [] });
     } catch (e) {
       console.error(e);
       toast.error('Dashboard konnte nicht geladen werden');
@@ -291,6 +292,31 @@ export default function Home() {
           </div>
         )}
       </Card>
+
+      {/* Bestellliste Quick-View */}
+      {d.bestellungen && d.bestellungen.length > 0 && (
+        <Card className="p-4 shadow-sm">
+          <Link to="/bestellliste" className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-brand" />
+              <h2 className="font-semibold">Material benötigt</h2>
+            </div>
+            <span className="text-xs text-muted-foreground">{d.bestellungen.length} offen</span>
+          </Link>
+          <div className="space-y-1">
+            {d.bestellungen.slice(0, 3).map(b => (
+              <div key={b.id} className="flex items-center gap-3 py-2 min-h-[40px] text-sm">
+                {b.prioritaet === 'Dringend' && <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />}
+                <span className="font-medium flex-1 min-w-0 truncate">{b.titel}</span>
+                <span className="text-muted-foreground shrink-0">{b.menge}</span>
+              </div>
+            ))}
+            <Link to="/bestellliste" className="block text-center text-sm text-brand hover:underline pt-2">
+              Alle anzeigen / Hinzufügen
+            </Link>
+          </div>
+        </Card>
+      )}
 
       {/* Morgenroutine — einklappbare Card */}
       <MorgenroutineCard />

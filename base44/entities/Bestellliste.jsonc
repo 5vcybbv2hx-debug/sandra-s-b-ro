@@ -1,0 +1,47 @@
+{
+  "name": "Bestellliste",
+  "type": "object",
+  "properties": {
+    "titel": {
+      "type": "string",
+      "title": "Was wird gebraucht?"
+    },
+    "kategorie": {
+      "type": "string",
+      "title": "Kategorie",
+      "enum": ["Büromaterial", "Plotter/Papier", "Druck/Tinte", "Werkzeug", "Sonstiges"],
+      "default": "Büromaterial"
+    },
+    "menge": {
+      "type": "string",
+      "title": "Menge",
+      "description": "z.B. 2 Stück, 1 Rolle, 5 Packungen"
+    },
+    "prioritaet": {
+      "type": "string",
+      "title": "Priorität",
+      "enum": ["Normal", "Dringend"],
+      "default": "Normal"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": ["Offen", "Bestellt", "Geliefert"],
+      "default": "Offen"
+    },
+    "notizen": {
+      "type": "string",
+      "title": "Notizen"
+    },
+    "bestellt_am": {
+      "type": "string",
+      "format": "date",
+      "title": "Bestellt am"
+    },
+    "geliefert_am": {
+      "type": "string",
+      "format": "date",
+      "title": "Geliefert am"
+    }
+  }
+}

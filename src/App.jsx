@@ -33,6 +33,7 @@ import Mitarbeiter from '@/pages/Mitarbeiter';
 import MitarbeiterDetail from '@/pages/MitarbeiterDetail';
 import Druckauftraege from '@/pages/Druckauftraege';
 import Vorlagen from '@/pages/Vorlagen';
+import Bestellliste from '@/pages/Bestellliste';
 import NasSync from '@/pages/NasSync';
 import RechnungsMatching from '@/pages/RechnungsMatching';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -90,6 +91,7 @@ const AuthenticatedApp = () => {
           <Route path="/mitarbeiter/:id" element={<MitarbeiterDetail />} />
           <Route path="/druckauftraege" element={<Druckauftraege />} />
           <Route path="/vorlagen" element={<Vorlagen />} />
+          <Route path="/bestellliste" element={<Bestellliste />} />
           <Route path="/nas-sync" element={<NasSync />} />
           <Route path="/rechnungs-matching" element={<RechnungsMatching />} />
         </Route>
