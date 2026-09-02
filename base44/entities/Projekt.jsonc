@@ -125,6 +125,16 @@
       "type": "boolean",
       "title": "Internes Projekt",
       "default": false
+    },
+    "pinned": {
+      "type": "boolean",
+      "title": "Angeheftet",
+      "default": false
+    },
+    "pinned_order": {
+      "type": "number",
+      "title": "Anheft-Reihenfolge",
+      "default": 0
     }
   },
   "required": [

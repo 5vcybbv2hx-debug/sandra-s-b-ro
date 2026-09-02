@@ -23,6 +23,12 @@ export function todayISO() {
   return new Date().toISOString().split('T')[0];
 }
 
+export function daysAgoISO(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().split('T')[0];
+}
+
 export function currentMonth() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;

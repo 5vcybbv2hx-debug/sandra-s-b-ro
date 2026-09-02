@@ -5,8 +5,8 @@ import { useTimer } from '@/lib/TimerContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Play, Square, Plus, Phone, CheckCircle2, Car } from 'lucide-react';
-import { todayISO } from '@/lib/format';
+import { Play, Square, Plus, Phone, CheckCircle2, Car, Pin, PinOff } from 'lucide-react';
+import { todayISO, daysAgoISO } from '@/lib/format';
 import { toast } from 'sonner';
 import MorgenroutineCard from '@/components/MorgenroutineCard';
 
@@ -27,19 +27,53 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const [aufgaben, notizen, projekte, firmen, fahrten] = await Promise.all([
+      const since = daysAgoISO(30);
+      const [aufgaben, notizen, projekte, firmen, fahrten, zeiteintraege] = await Promise.all([
         base44.entities.Aufgabe.filter({ erledigt: false }),
         base44.entities.Telefonnotiz.filter({ erledigt: false }),
-        base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 10),
+        base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 30),
         base44.entities.Firma.list('-name', 200),
         base44.entities.Fahrt.filter({ datum: todayISO() }, '-created_date', 10),
+        base44.entities.Zeiteintrag.filter({}, '-datum', 200).then(all => all.filter(z => z.datum >= since)).catch(() => []),
       ]);
       const focused = aufgaben.filter(t => t.heute_fokussiert);
       const unfocused = aufgaben.filter(t => !t.heute_fokussiert);
       const topTasks = [...focused, ...unfocused].slice(0, 3);
       const callbacks = notizen.filter(n => n.naechster_schritt).slice(0, 3);
       const todayFahrten = fahrten || [];
-      setD({ topTasks, callbacks, projects: projekte.slice(0, 5), firmen, todayFahrten });
+
+      // Smart Project-Sortierung: Pinned → kürzlich gestempelt → Rest
+      const recentStampCounts = {};
+      zeiteintraege.forEach(z => {
+        if (z.projekt_id) {
+          recentStampCounts[z.projekt_id] = (recentStampCounts[z.projekt_id] || 0) + 1;
+        }
+      });
+      const recentStampDate = {};
+      zeiteintraege.forEach(z => {
+        if (z.projekt_id) {
+          if (!recentStampDate[z.projekt_id] || z.datum > recentStampDate[z.projekt_id]) {
+            recentStampDate[z.projekt_id] = z.datum;
+          }
+        }
+      });
+
+      const pinned = projekte.filter(p => p.pinned).sort((a, b) => (b.pinned_order || 0) - (a.pinned_order || 0));
+      const pinnedIds = new Set(pinned.map(p => p.id));
+      const stamped = projekte.filter(p => !pinnedIds.has(p.id) && recentStampCounts[p.id])
+        .sort((a, b) => (recentStampDate[b.id] || '').localeCompare(recentStampDate[a.id] || ''));
+      const stampedIds = new Set(stamped.map(p => p.id));
+      const rest = projekte.filter(p => !pinnedIds.has(p.id) && !stampedIds.has(p.id));
+
+      const smartProjects = [...pinned, ...stamped, ...rest].slice(0, 6);
+
+      // Stempel-Info für Anzeige
+      const stampInfo = {};
+      Object.keys(recentStampCounts).forEach(id => {
+        stampInfo[id] = { count: recentStampCounts[id], lastDate: recentStampDate[id] };
+      });
+
+      setD({ topTasks, callbacks, projects: smartProjects, firmen, todayFahrten, stampInfo, pinnedIds: [...pinnedIds] });
     } catch (e) {
       console.error(e);
       toast.error('Dashboard konnte nicht geladen werden');
@@ -61,11 +95,29 @@ export default function Home() {
     loadData();
   };
 
+  const togglePin = async (p) => {
+    const newPinned = !p.pinned;
+    await base44.entities.Projekt.update(p.id, { pinned: newPinned, pinned_order: newPinned ? Date.now() : 0 });
+    toast.success(newPinned ? `${p.projekt_name} angeheftet` : `${p.projekt_name} entfernt`);
+    loadData();
+  };
+
   const firmaName = (fid) => d?.firmen.find(f => f.id === fid)?.name || '';
 
   const handleStartTimer = async (proj) => {
     await startTimer(proj.id, '', '');
     toast.success(`Timer gestartet für ${proj.projekt_name}`);
+  };
+
+  const formatStampDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const today = new Date();
+    const diff = Math.floor((today - d) / 86400000);
+    if (diff === 0) return 'heute';
+    if (diff === 1) return 'gestern';
+    if (diff < 7) return `vor ${diff} Tagen`;
+    return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
   };
 
   const hour = new Date().getHours();
@@ -95,28 +147,56 @@ export default function Home() {
         </Card>
       )}
 
-      {/* 2. Projekte mit Timer-Start */}
+      {/* 2. Projekte mit Timer-Start + Smart Sortierung */}
       <div>
-        <h2 className="text-sm font-medium text-muted-foreground px-1 mb-2">Projekte</h2>
+        <div className="flex items-center justify-between px-1 mb-2">
+          <h2 className="text-sm font-medium text-muted-foreground">Projekte</h2>
+          {d.pinnedIds.length > 0 && (
+            <span className="text-xs text-muted-foreground">{d.pinnedIds.length} angeheftet</span>
+          )}
+        </div>
         <div className="space-y-2">
-          {d.projects.map(p => (
-            <Card key={p.id} className="p-0 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-1">
-                <Link to={`/projekte/${p.id}`} className="flex-1 min-w-0 p-4">
-                  <p className="font-semibold truncate">{p.projekt_name}</p>
-                  <p className="text-sm text-muted-foreground truncate">{firmaName(p.firma_id)}</p>
-                </Link>
-                <button
-                  onClick={() => handleStartTimer(p)}
-                  disabled={!!activeTimer}
-                  className="shrink-0 w-12 h-12 m-2 rounded-xl bg-brand-light text-brand-dark hover:bg-brand hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                  aria-label={`Timer starten für ${p.projekt_name}`}
-                >
-                  <Play className="w-5 h-5 fill-current" />
-                </button>
-              </div>
-            </Card>
-          ))}
+          {d.projects.map(p => {
+            const isPinned = p.pinned;
+            const info = d.stampInfo[p.id];
+            return (
+              <Card key={p.id} className={`p-0 shadow-sm overflow-hidden ${isPinned ? 'border-brand/30 bg-brand-light/30' : ''}`}>
+                <div className="flex items-center gap-1">
+                  <Link to={`/projekte/${p.id}`} className="flex-1 min-w-0 p-4">
+                    <div className="flex items-center gap-2">
+                      {isPinned && <Pin className="w-3.5 h-3.5 text-brand shrink-0 fill-brand" />}
+                      <p className="font-semibold truncate">{p.projekt_name}</p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-sm text-muted-foreground truncate">{firmaName(p.firma_id)}</p>
+                      {info && (
+                        <span className="text-xs text-muted-foreground/70 shrink-0">
+                          · {info.count}× gestempelt ({formatStampDate(info.lastDate)})
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                  {/* Pin Toggle */}
+                  <button
+                    onClick={() => togglePin(p)}
+                    className="shrink-0 w-9 h-9 m-1 rounded-lg text-muted-foreground hover:text-brand hover:bg-brand-light/50 flex items-center justify-center transition-colors"
+                    aria-label={isPinned ? 'Projekt lösen' : 'Projekt anheften'}
+                  >
+                    {isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                  </button>
+                  {/* Timer Start */}
+                  <button
+                    onClick={() => handleStartTimer(p)}
+                    disabled={!!activeTimer}
+                    className="shrink-0 w-12 h-12 m-2 rounded-xl bg-brand-light text-brand-dark hover:bg-brand hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                    aria-label={`Timer starten für ${p.projekt_name}`}
+                  >
+                    <Play className="w-5 h-5 fill-current" />
+                  </button>
+                </div>
+              </Card>
+            );
+          })}
           {d.projects.length === 0 && (
             <p className="text-center py-4 text-muted-foreground text-sm">Keine aktiven Projekte</p>
           )}
