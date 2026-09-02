@@ -4,21 +4,12 @@ import { useAuth } from '@/lib/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, LayoutGrid, List, ChevronDown, Pin, Clock, X } from 'lucide-react';
+import { Plus, Search, LayoutGrid, List, Pin, Clock, X } from 'lucide-react';
 import ProjektCard from '@/components/projekt/ProjektCard';
 import ProjektStartWizard from '@/components/projekt/ProjektStartWizard';
 import { cn } from '@/lib/utils';
 
 const PHASEN = ['Entwurf', 'Baugesuch', 'Werkplanung'];
-
-const STATUS_GROUPS = [
-  { status: 'Aktiv', defaultCollapsed: false },
-  { status: 'Anfrage', defaultCollapsed: false },
-  { status: 'Wartend', defaultCollapsed: true },
-  { status: 'Abgeschlossen', defaultCollapsed: true },
-  { status: 'Abgebrochen', defaultCollapsed: true },
-  { status: 'Archiviert', defaultCollapsed: true },
-];
 
 const FILTER_STORAGE_KEY = 'projekte_filter_v1';
 
@@ -45,13 +36,6 @@ export default function Projekte() {
   const [sortBy, setSortBy] = useState(saved.sortBy ?? 'deadline');
   const [view, setView] = useState('list');
   const [showNew, setShowNew] = useState(false);
-  const [collapsed, setCollapsed] = useState({
-    Wartend: true,
-    Abgeschlossen: true,
-    Abgebrochen: true,
-    Archiviert: true,
-  });
-
   useEffect(() => { loadProjekte(); }, []);
 
   // Filter-Auswahl merken (smart: nächster Besuch startet mit gleicher Ansicht)
@@ -130,18 +114,6 @@ export default function Projekte() {
       .filter((p) => p.status === 'Abgeschlossen')
       .reduce((sum, p) => sum + (p.abgerechnete_stunden || 0), 0),
   };
-
-  const grouped = STATUS_GROUPS.map((g) => ({
-    ...g,
-    items: filtered.filter((p) => p.status === g.status),
-  })).filter((g) => g.items.length > 0);
-
-  const otherItems = filtered.filter((p) => !STATUS_GROUPS.some((g) => g.status === p.status));
-  if (otherItems.length > 0) {
-    grouped.push({ status: 'Sonstige', defaultCollapsed: true, items: otherItems });
-  }
-
-  const toggle = (status) => setCollapsed((prev) => ({ ...prev, [status]: !prev[status] }));
 
   const renderCard = (p) => (
     <ProjektCard
@@ -281,30 +253,11 @@ export default function Projekte() {
 
           {loading ? (
             <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 bg-cardbg rounded-2xl animate-pulse" />)}</div>
-          ) : grouped.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <p className="text-muted-foreground text-center py-12">Keine Projekte gefunden.</p>
           ) : (
-            <div className="space-y-4">
-              {grouped.map((group) => {
-                const isCollapsed = collapsed[group.status] ?? group.defaultCollapsed;
-                return (
-                  <div key={group.status}>
-                    <button
-                      onClick={() => toggle(group.status)}
-                      className="flex items-center gap-2 w-full px-1 py-2 text-sm font-semibold text-foreground"
-                    >
-                      <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', isCollapsed && 'rotate-180')} />
-                      {group.status}
-                      <span className="text-xs font-normal text-muted-foreground bg-cardbg px-2 py-0.5 rounded-full">{group.items.length}</span>
-                    </button>
-                    <div className={cn('overflow-hidden transition-all duration-200', isCollapsed ? 'max-h-0' : 'max-h-[5000px]')}>
-                      <div className="grid gap-3 pt-1">
-                        {group.items.map(renderCard)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid gap-3">
+              {filtered.map(renderCard)}
             </div>
           )}
         </>
