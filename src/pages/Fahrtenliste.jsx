@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { formatDate, todayISO, monthLabel } from '@/lib/format';
@@ -11,10 +11,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Car, Download, Trash2, ChevronLeft, ChevronRight, MapPin, AlertCircle, Check } from 'lucide-react';
+import AddressInput from '@/components/fahrt/AddressInput';
 
 export default function Fahrtenliste() {
   const [fahrten, setFahrten] = useState([]);
   const [projekte, setProjekte] = useState([]);
+  const [firmen, setFirmen] = useState([]);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
@@ -28,12 +30,14 @@ export default function Fahrtenliste() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [f, p] = await Promise.all([
+      const [f, p, fi] = await Promise.all([
         base44.entities.Fahrt.list('-datum', 2000),
         base44.entities.Projekt.list('-created_date', 500),
+        base44.entities.Firma.list('-created_date', 200),
       ]);
       setFahrten(f);
       setProjekte(p);
+      setFirmen(fi);
     } catch { toast.error('Fahrten konnten nicht geladen werden'); }
     finally { setLoading(false); }
   };
@@ -49,6 +53,23 @@ export default function Fahrtenliste() {
   const days = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   const projName = (id) => projekte.find(p => p.id === id)?.projekt_name || '';
+
+  // Smart Address-Vorschläge
+  const frequentAddresses = useMemo(() => {
+    const counts = {};
+    fahrten.forEach(f => {
+      if (f.startort) counts[f.startort] = (counts[f.startort] || 0) + 1;
+      if (f.zielort) counts[f.zielort] = (counts[f.zielort] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([label, count]) => ({ label, count }));
+  }, [fahrten]);
+
+  const projectAddresses = useMemo(() => {
+    return projekte.filter(p => p.status === 'Aktiv').map(p => {
+      const firma = firmen.find(f => f.id === p.firma_id);
+      return { label: p.projekt_name || p.name || 'Unbekannt', sublabel: firma?.adresse || null };
+    }).filter(p => p.label);
+  }, [projekte, firmen]);
 
   const handleSave = async () => {
     if (!form.datum || !form.startort || !form.zielort || !form.kilometer) { toast.error('Bitte Datum, Startort, Zielort und Kilometer ausfüllen'); return; }
@@ -252,11 +273,23 @@ export default function Fahrtenliste() {
             </div>
             <div>
               <Label>Startort</Label>
-              <Input value={form.startort} onChange={(e) => setForm({ ...form, startort: e.target.value })} placeholder="z.B. Zimmern ob Rottweil" className="min-h-[48px]" />
+              <AddressInput
+                value={form.startort}
+                onChange={(v) => setForm({ ...form, startort: v })}
+                placeholder="z.B. Zimmern ob Rottweil"
+                frequentAddresses={frequentAddresses}
+                projectAddresses={projectAddresses}
+              />
             </div>
             <div>
               <Label>Zielort</Label>
-              <Input value={form.zielort} onChange={(e) => setForm({ ...form, zielort: e.target.value })} placeholder="z.B. Baustelle Schömberg" className="min-h-[48px]" />
+              <AddressInput
+                value={form.zielort}
+                onChange={(v) => setForm({ ...form, zielort: v })}
+                placeholder="z.B. Baustelle Schömberg"
+                frequentAddresses={frequentAddresses}
+                projectAddresses={projectAddresses}
+              />
             </div>
             <div>
               <Label>Kilometer</Label>
