@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, CalendarDays, Clock, MoreHorizontal, Settings, CheckSquare, Car, Phone, Users, FileText, BarChart3, ShoppingBag } from 'lucide-react';
+import { Home, FolderKanban, CalendarDays, Clock, MoreHorizontal, Settings, CheckSquare, Car, Phone, Users, FileText, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
@@ -28,7 +28,6 @@ export default function BottomNav() {
 
   const mehrItems = [
     { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
-    { to: '/bestellliste', label: 'Bestellliste', icon: ShoppingBag },
     { to: '/fahrten', label: 'Fahrten', icon: Car },
     { to: '/telefon', label: 'Telefon', icon: Phone },
     { to: '/kontakte', label: 'Kontakte', icon: Users },

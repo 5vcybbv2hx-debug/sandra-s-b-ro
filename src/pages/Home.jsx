@@ -20,6 +20,16 @@ function fmtElapsed(sec) {
 export default function Home() {
   const { activeTimer, elapsed, project: timerProject, startTimer, stopTimer } = useTimer();
   const [d, setD] = useState(null);
+
+  const markBestellt = async (id) => {
+    try {
+      await base44.entities.Bestellliste.update(id, { status: 'Bestellt', bestellt_am: new Date().toISOString().split('T')[0] });
+      setD(prev => ({ ...prev, bestellungen: prev.bestellungen.filter(b => b.id !== id) }));
+      toast.success('Als bestellt markiert');
+    } catch (e) {
+      toast.error('Konnte nicht aktualisieren');
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState('');
 
@@ -293,27 +303,32 @@ export default function Home() {
         )}
       </Card>
 
-      {/* Bestellliste Quick-View */}
+      {/* Bestellliste Quick-View — inline actions, no separate page */}
       {d.bestellungen && d.bestellungen.length > 0 && (
         <Card className="p-4 shadow-sm">
-          <Link to="/bestellliste" className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-brand" />
               <h2 className="font-semibold">Material benötigt</h2>
             </div>
             <span className="text-xs text-muted-foreground">{d.bestellungen.length} offen</span>
-          </Link>
+          </div>
           <div className="space-y-1">
-            {d.bestellungen.slice(0, 3).map(b => (
-              <div key={b.id} className="flex items-center gap-3 py-2 min-h-[40px] text-sm">
+            {d.bestellungen.slice(0, 5).map(b => (
+              <div key={b.id} className="flex items-center gap-3 py-2 min-h-[44px] text-sm">
                 {b.prioritaet === 'Dringend' && <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />}
-                <span className="font-medium flex-1 min-w-0 truncate">{b.titel}</span>
-                <span className="text-muted-foreground shrink-0">{b.menge}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium truncate block">{b.titel}</span>
+                  {b.menge && <span className="text-xs text-muted-foreground">{b.menge}</span>}
+                </div>
+                <button
+                  onClick={() => markBestellt(b.id)}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-brand-light text-brand-dark hover:bg-brand hover:text-white text-xs font-medium transition-colors"
+                >
+                  Bestellt
+                </button>
               </div>
             ))}
-            <Link to="/bestellliste" className="block text-center text-sm text-brand hover:underline pt-2">
-              Alle anzeigen / Hinzufügen
-            </Link>
           </div>
         </Card>
       )}
