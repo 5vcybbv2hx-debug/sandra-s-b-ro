@@ -1,0 +1,603 @@
+{
+  "firms": [
+    {
+      "name": "Deine HausManufaktur GmbH",
+      "adresse": "Marc-Cain-Allee 21, 72411 Bodelshausen",
+      "telefon_zentrale": "",
+      "email_allgemein": "rechnung@deine-hausmanufaktur.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Jetter Gebäudebau GmbH",
+      "adresse": "Maybachstraße 1, 72348 Rosenfeld",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Auto Seredin Handels GmbH",
+      "adresse": "Brunnenstaße 9, 72379 Hechingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Schneider Transporte+Tankbetrieb",
+      "adresse": "Madertal 1, 72401 Haigerloch",
+      "telefon_zentrale": "07474 31999",
+      "email_allgemein": "schneidertrans@web.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Wohnraum Bitzer",
+      "adresse": "Untere Vorstadt 34, 72458 Albstadt-Ebingen",
+      "telefon_zentrale": "07431 7499770",
+      "email_allgemein": "info@wohnraumbitzer.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Building Design",
+      "adresse": "Am Jausenteich 37, 72458 Albstadt-Ebingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "GWG",
+      "adresse": "Konrad-Adenauer-Straße 8, 72072 Tübingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Henne & Kleinmann",
+      "adresse": "Salztalstraße 10, 72401 Haigerloch - Owingen",
+      "telefon_zentrale": "74747190",
+      "email_allgemein": "henne@henne-kleinmann.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Geiger Massivbau",
+      "adresse": "Kornbergstraße 42, 72459 Albstadt-Pfeffingen",
+      "telefon_zentrale": "07432-984 20 26",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Sandra Hugendubel Staatl. Gepr. Bautechnikerin",
+      "adresse": "Edelmannstraße 50, 72401 Haigerloch",
+      "telefon_zentrale": "07474-95 60 919",
+      "email_allgemein": "info@sandrahugendubel.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Architekturbüro Mantei",
+      "adresse": "An der Breite 5, 72379 Hechingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Architekturbüro  Ralf Baur",
+      "adresse": "Kornbühlstraße 24, 72417 Jungingen",
+      "telefon_zentrale": "07477-22 500 33",
+      "email_allgemein": "baur@architekt-baur.info",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Müller, Guido",
+      "adresse": "",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Projektbau Zollernalb GmbH",
+      "adresse": "Hauptwasen 3, 72336 Balingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Wallenwein",
+      "adresse": "",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Bauwerk Zollernalb",
+      "adresse": "Mühlstraße 14, 72336 Balingen",
+      "telefon_zentrale": "07433-66 96",
+      "email_allgemein": "waiblinger2@arcor.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Das mobile Baubüro",
+      "adresse": "Heinzlensrain 15, 72336 Balingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "zunzer@das-mobile-baubuero.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "R+G Wohnbau",
+      "adresse": "Balinger Strasse 61, 72336 Balingen",
+      "telefon_zentrale": "074339559979",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "EBB Karrer",
+      "adresse": "Süßerstraße 4, 72074 Tübingen",
+      "telefon_zentrale": "70715666635",
+      "email_allgemein": "post@ebb-karrer.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Jetter Baubetreuung",
+      "adresse": "Ebinger Straße 51, 72336 Balingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "HaserBau",
+      "adresse": "Hohenbergstraße 24, 72401 Haigerloch",
+      "telefon_zentrale": "07474 918459",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Heinrich Seeger",
+      "adresse": "Robert-Bosch-Straße 1, 72348 Rosenfeld",
+      "telefon_zentrale": "07428-91 70 17",
+      "email_allgemein": "seeger-rosenfeld@t-online.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Otto Bau GmbH & Co. KG.",
+      "adresse": "Dernauer Straße 23, 53501 Grafschaft",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Dipl.-Ing (FH) Architekt Thomas Prior",
+      "adresse": "Hinter d. Böck 50, 40221 Düsseldorf",
+      "telefon_zentrale": "0211 3036680",
+      "email_allgemein": "mail@prior-architekten.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Krauss Massivbau",
+      "adresse": "Stuttgarter Straße 53, 71083 Herrenberg",
+      "telefon_zentrale": "",
+      "email_allgemein": "bauleitung@krauss-massivbau.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "ITG-Seiberth",
+      "adresse": "Marktstraße 35, 76829 Landau in der Pfalz",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Holzbau Fuss",
+      "adresse": "Gammertinger Straße 21, 72379 Hechingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "TRAGFORM Ingenieure GmbH",
+      "adresse": "Ullerstraße 3, 77716 Hofstetten",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Eckelt Baubetreuung",
+      "adresse": "Im Nasswasen 14, 72379 Hechingen",
+      "telefon_zentrale": "07471/94296-0",
+      "email_allgemein": "gerd@eckelt.team",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Holzbau Siedler GmbH & Co. KG",
+      "adresse": "Hangstraße 5, 72401 Haigerloch",
+      "telefon_zentrale": "074748184",
+      "email_allgemein": "hs@holzbau-siedler.de",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "CKL-Bau UG Garten und Landschaftsbau",
+      "adresse": "Nusplinger Straße 33, 78580 Bärentahl",
+      "telefon_zentrale": "07466/927143",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    },
+    {
+      "name": "Sobetsky Wohnbau GmbH",
+      "adresse": "Sigmaringer Straße 10, 72379 Hechingen",
+      "telefon_zentrale": "",
+      "email_allgemein": "",
+      "branche": "Sonstiges",
+      "aktiv": true
+    }
+  ],
+  "contacts": [
+    {
+      "vorname": "Goran",
+      "nachname": "Ivkovic",
+      "email": "goran.ivkovic@deine-hausmanufaktur.de",
+      "telefon": "07471-942 99 10",
+      "rolle": "Sonstiges",
+      "firma_name": "Deine HausManufaktur GmbH"
+    },
+    {
+      "vorname": "Hanspeter",
+      "nachname": "Haug",
+      "email": "hanspeter.haug@deine-hausmanufaktur.de",
+      "telefon": "07471-942 99 20",
+      "rolle": "Sonstiges",
+      "firma_name": "Deine HausManufaktur GmbH"
+    },
+    {
+      "vorname": "Nicole",
+      "nachname": "Blutbacher",
+      "email": "nicole.blutbacher@deine-hausmanufaktur.de",
+      "telefon": "07471-942 99 0",
+      "rolle": "Sonstiges",
+      "firma_name": "Deine HausManufaktur GmbH"
+    },
+    {
+      "vorname": "Petra",
+      "nachname": "Rehn",
+      "email": "petra.rehn@deine-hausmanufaktur.de",
+      "telefon": "07471-942 99 11",
+      "rolle": "Sonstiges",
+      "firma_name": "Deine HausManufaktur GmbH"
+    },
+    {
+      "vorname": "J",
+      "nachname": "Jetter",
+      "email": "j.jetter@jetter-rosenfeld.de",
+      "telefon": "07428-93 89 11",
+      "rolle": "Sonstiges",
+      "firma_name": "Jetter Gebäudebau GmbH"
+    },
+    {
+      "vorname": "Michael",
+      "nachname": "Waiblinger",
+      "email": "Michael.waiblinger@jetter-rosenfeld.de",
+      "telefon": "7428938929",
+      "rolle": "Sonstiges",
+      "firma_name": "Jetter Gebäudebau GmbH"
+    },
+    {
+      "vorname": "Building",
+      "nachname": "Design",
+      "email": "building.design@gmx.de",
+      "telefon": "74319898260",
+      "rolle": "Sonstiges",
+      "firma_name": "Building Design"
+    },
+    {
+      "vorname": "Architekturbuero",
+      "nachname": "Mantei",
+      "email": "architekturbuero.mantei@t-online.de",
+      "telefon": "07471-122 41",
+      "rolle": "Sonstiges",
+      "firma_name": "Architekturbüro Mantei"
+    },
+    {
+      "vorname": "Raimund - Dipl.Ing. (FH), freier Archtiekt -",
+      "nachname": "Mantei",
+      "email": "architekturbuero.mantei@t-online.de",
+      "telefon": "07471/12241",
+      "rolle": "Sonstiges",
+      "firma_name": "Architekturbüro Mantei"
+    },
+    {
+      "vorname": "A",
+      "nachname": "Tissen",
+      "email": "a.tissen@projektbau-zollernalb.de",
+      "telefon": "07433-955 70 66",
+      "rolle": "Sonstiges",
+      "firma_name": "Projektbau Zollernalb GmbH"
+    },
+    {
+      "vorname": "K",
+      "nachname": "Karrer",
+      "email": "K.Karrer@gwg-tuebingen.de",
+      "telefon": "7071799024",
+      "rolle": "Sonstiges",
+      "firma_name": "GWG"
+    },
+    {
+      "vorname": "A",
+      "nachname": "Jetter",
+      "email": "a.jetter@jetter-baubetreuung.de",
+      "telefon": "07433 34061",
+      "rolle": "Sonstiges",
+      "firma_name": "Jetter Baubetreuung"
+    },
+    {
+      "vorname": "Seeger",
+      "nachname": "Rosenfeld",
+      "email": "seeger-rosenfeld@t-online.de",
+      "telefon": "07428-91 70 17",
+      "rolle": "Sonstiges",
+      "firma_name": "Heinrich Seeger"
+    },
+    {
+      "vorname": "Leon",
+      "nachname": "Otto",
+      "email": "leon.otto@otto-dernau.de",
+      "telefon": "",
+      "rolle": "Sonstiges",
+      "firma_name": "Otto Bau GmbH & Co. KG."
+    },
+    {
+      "vorname": "N",
+      "nachname": "Fuss",
+      "email": "n.fuss@holzbau-fuss.de",
+      "telefon": "07436.928137",
+      "rolle": "Sonstiges",
+      "firma_name": "Holzbau Fuss"
+    },
+    {
+      "vorname": "Andreas",
+      "nachname": "Schnaitter",
+      "email": "andreas.schnaitter@tragform.de",
+      "telefon": "078329460281",
+      "rolle": "Sonstiges",
+      "firma_name": "TRAGFORM Ingenieure GmbH"
+    },
+    {
+      "vorname": "Sascha",
+      "nachname": "Lehman",
+      "email": "",
+      "telefon": "07466/927143",
+      "rolle": "Sonstiges",
+      "firma_name": "CKL-Bau UG Garten und Landschaftsbau"
+    }
+  ],
+  "standalone": [
+    {
+      "vorname": "Silvia und Dieter",
+      "nachname": "Strobel",
+      "telefon": "",
+      "email": "",
+      "adresse": "Zollernstraße 8, 72379 Hechingen"
+    },
+    {
+      "vorname": "Nora und Thomas",
+      "nachname": "Treiber",
+      "telefon": "",
+      "email": "",
+      "adresse": "Banweg 23, 72131 Ofterdingen"
+    },
+    {
+      "vorname": "Thomas",
+      "nachname": "Dreher",
+      "telefon": "07471/984992-0",
+      "email": "",
+      "adresse": "Haigerlocherstraße 11, 72379 Hechingen"
+    },
+    {
+      "vorname": "Rosa & Michael",
+      "nachname": "Hautmann",
+      "telefon": "",
+      "email": "",
+      "adresse": "Schwabenweg 3, 72414 Rangendinge"
+    },
+    {
+      "vorname": "Nora & Thomas",
+      "nachname": "Treiber",
+      "telefon": "",
+      "email": "",
+      "adresse": "Banweg 23, 72131 Ofterdingen"
+    },
+    {
+      "vorname": "Lara & Vera & Karl",
+      "nachname": "Schiel",
+      "telefon": "",
+      "email": "",
+      "adresse": "Schmelzestraße 12, 78584 Wehingen"
+    },
+    {
+      "vorname": "Cindy & Thorsten",
+      "nachname": "Beck",
+      "telefon": "",
+      "email": "",
+      "adresse": "Bettwiesenstraße 15, 72415 Grosselfingen"
+    },
+    {
+      "vorname": "",
+      "nachname": "Fröhlich Daniela & Steffen Markus",
+      "telefon": "",
+      "email": "",
+      "adresse": "Weiherstraße 15, 72406 Bisingen-Thanheim"
+    },
+    {
+      "vorname": "Gennaro",
+      "nachname": "Barba",
+      "telefon": "",
+      "email": "",
+      "adresse": "Sängerstr. 10, 78647 Trossingen"
+    },
+    {
+      "vorname": "Elena und Andrej",
+      "nachname": "Injuschov",
+      "telefon": "",
+      "email": "",
+      "adresse": "Saulgauer Str. 42, 88326 Aulendorf"
+    },
+    {
+      "vorname": "Zsanett & Nicolai",
+      "nachname": "Kreitli",
+      "telefon": "",
+      "email": "",
+      "adresse": "Peter-Rosegger-Straße 4, 72762 Reutlingen"
+    },
+    {
+      "vorname": "Silvia & Georg",
+      "nachname": "Von Enzberg",
+      "telefon": "",
+      "email": "",
+      "adresse": "Meisenstraße 15, 72356 Dautmergen"
+    },
+    {
+      "vorname": "Martin",
+      "nachname": "Hahn",
+      "telefon": "",
+      "email": "",
+      "adresse": "Bergwiesenweg 28, 72411 Bodelshausen"
+    },
+    {
+      "vorname": "Iris",
+      "nachname": "Klaiber",
+      "telefon": "",
+      "email": "",
+      "adresse": "Obertorplatz 11, 72379 Hechingen"
+    },
+    {
+      "vorname": "Ulrich",
+      "nachname": "Kersenfischer",
+      "telefon": "",
+      "email": "",
+      "adresse": "Friedrichstal 1, 72379 Hechingen-Boll"
+    },
+    {
+      "vorname": "Bernd",
+      "nachname": "Odermatt",
+      "telefon": "07471/91330",
+      "email": "",
+      "adresse": "Walkenmühleweg 57, 72379 Hechingen"
+    },
+    {
+      "vorname": "Ingrid",
+      "nachname": "Seifert",
+      "telefon": "",
+      "email": "",
+      "adresse": "Zollernstraße 43, 72401 Balingen"
+    },
+    {
+      "vorname": "Manuela und Dr. Mario",
+      "nachname": "Holderied",
+      "telefon": "",
+      "email": "",
+      "adresse": "Theodor-Heuss-Str. 9, 72351 Geislingen"
+    },
+    {
+      "vorname": "",
+      "nachname": "Eiternik Anna & Eugen / Barba Gennaro",
+      "telefon": "",
+      "email": "",
+      "adresse": "Kirchsteig 18 / Sängerstr. 10, 78647 Trossingen"
+    },
+    {
+      "vorname": "Volker",
+      "nachname": "Eints",
+      "telefon": "07419/4247572",
+      "email": "",
+      "adresse": "Oberamteigasse 6, 78628 Rottweil"
+    },
+    {
+      "vorname": "Anna & Eugen",
+      "nachname": "Eiternik",
+      "telefon": "",
+      "email": "",
+      "adresse": "Kirchsteig 18, 78647 Trossingen"
+    },
+    {
+      "vorname": "",
+      "nachname": "Martin und Rainer Hahn GbR",
+      "telefon": "",
+      "email": "",
+      "adresse": "Bergwiesenweg 28, 72411 Bodelshausen"
+    },
+    {
+      "vorname": "Christina",
+      "nachname": "Peter",
+      "telefon": "",
+      "email": "",
+      "adresse": "Amselstraße 19, 72356 Dautmergen"
+    },
+    {
+      "vorname": "Alexander",
+      "nachname": "Brack",
+      "telefon": "",
+      "email": "",
+      "adresse": "Böllatweg 8, 72351 Binsdorf"
+    },
+    {
+      "vorname": "",
+      "nachname": "Wendland",
+      "telefon": "07474 4633477",
+      "email": "s.schiebel1980@web.de",
+      "adresse": "Schopfloch 25, 72401 Haigerloch - Stetten"
+    },
+    {
+      "vorname": "Harald",
+      "nachname": "Decker",
+      "telefon": "07474 1018",
+      "email": "",
+      "adresse": "Im Steig 8, 72401 Haigerloch"
+    },
+    {
+      "vorname": "Nicole",
+      "nachname": "Blutbacher",
+      "telefon": "",
+      "email": "",
+      "adresse": "Eugenstraße 57, 72475 Bitz"
+    },
+    {
+      "vorname": "Christian",
+      "nachname": "Söll",
+      "telefon": "",
+      "email": "Christian.Soell@gmx.de",
+      "adresse": "Im Kruckenhof 10, 72401 Haigerloch"
+    },
+    {
+      "vorname": "Anke und Frank",
+      "nachname": "Buck",
+      "telefon": "",
+      "email": "",
+      "adresse": "Gerokstraße 2, 72131 Ofterdingen"
+    }
+  ]
+}
