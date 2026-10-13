@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Plus, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import TerminDialog from '@/components/kalender/TerminDialog';
+import ProjektZeitstrahl from '@/components/kalender/ProjektZeitstrahl';
 
 const HOUR_START = 7;
 const HOUR_END = 21;
@@ -177,6 +178,12 @@ export default function Kalender() {
             >
               Monat
             </button>
+            <button
+              onClick={() => setViewMode('zeitstrahl')}
+              className={cn('px-3 py-2 text-sm font-medium transition-colors min-h-[40px]', viewMode === 'zeitstrahl' ? 'bg-brand text-white' : 'bg-background text-muted-foreground hover:bg-accent')}
+            >
+              Zeitstrahl
+            </button>
           </div>
           <Button variant="outline" size="sm" onClick={handleSync} disabled={syncing} className="min-h-[40px]">
             <RefreshCw className={cn('w-4 h-4', syncing && 'animate-spin')} /> {syncing ? 'Sync...' : 'Sync'}
@@ -274,7 +281,7 @@ export default function Kalender() {
             </div>
           )}
         </>
-      ) : (
+      ) : viewMode === 'month' ? (
         <>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -425,6 +432,8 @@ export default function Kalender() {
             </>
           )}
         </>
+      ) : (
+        <ProjektZeitstrahl />
       )}
 
       <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">

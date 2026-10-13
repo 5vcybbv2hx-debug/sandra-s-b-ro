@@ -10,6 +10,7 @@ import { Play, Square, Plus, Phone, CheckCircle2, Car, Pin, PinOff, ShoppingBag,
 import { todayISO, daysAgoISO, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
 import MorgenroutineCard from '@/components/MorgenroutineCard';
+import FokusHeuteCard from '@/components/FokusHeuteCard';
 
 function fmtElapsed(sec) {
   const h = Math.floor(sec / 3600);
@@ -160,6 +161,9 @@ export default function Home() {
           </div>
         </Card>
       )}
+
+      {/* 1.5 Fokus heute — Planungs-Assistent */}
+      <FokusHeuteCard />
 
       {/* 2. Projekte mit Timer-Start + Smart Sortierung */}
       <div>
