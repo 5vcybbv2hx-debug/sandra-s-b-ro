@@ -1,0 +1,73 @@
+{
+  "name": "Verbindlichkeit",
+  "type": "object",
+  "properties": {
+    "glaeubiger": {
+      "type": "string",
+      "title": "Gl\u00e4ubiger"
+    },
+    "betrag": {
+      "type": "number",
+      "title": "Betrag"
+    },
+    "faelligkeitsdatum": {
+      "type": "string",
+      "format": "date",
+      "title": "F\u00e4lligkeitsdatum"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Offen",
+        "Geplant",
+        "Bezahlt"
+      ],
+      "default": "Offen"
+    },
+    "kategorie": {
+      "type": "string",
+      "title": "Kategorie"
+    },
+    "bezahlt_am": {
+      "type": "string",
+      "format": "date",
+      "title": "Bezahlt am"
+    },
+    "notiz": {
+      "type": "string",
+      "title": "Notiz"
+    },
+    "projekt_id": {
+      "type": "string",
+      "title": "Projekt"
+    }
+  },
+  "required": [
+    "glaeubiger",
+    "betrag",
+    "faelligkeitsdatum"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
