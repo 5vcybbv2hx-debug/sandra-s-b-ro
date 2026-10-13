@@ -59,6 +59,18 @@
         "org"
       ],
       "default": "team"
+    },
+    "zugewiesen_an_email": {
+      "type": "string",
+      "title": "Zugewiesen an E-Mail"
+    },
+    "zugewiesen_an_name": {
+      "type": "string",
+      "title": "Zugewiesen an Name"
+    },
+    "zugewiesen_von_name": {
+      "type": "string",
+      "title": "Zugewiesen von Name"
     }
   },
   "required": [

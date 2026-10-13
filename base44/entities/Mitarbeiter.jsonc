@@ -45,6 +45,19 @@
     "notizen": {
       "type": "string",
       "title": "Notizen"
+    },
+    "linked_email": {
+      "type": "string",
+      "title": "App-Konto E-Mail"
+    },
+    "app_rolle": {
+      "type": "string",
+      "title": "App Rolle",
+      "enum": [
+        "Inhaberin",
+        "Mitarbeiterin",
+        "Assistentin"
+      ]
     }
   },
   "required": [
