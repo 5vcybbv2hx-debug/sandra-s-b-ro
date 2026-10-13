@@ -83,6 +83,9 @@
           "created_by_id": "{{user.id}}"
         },
         {
+          "data.zugewiesen_an_email": "{{user.email}}"
+        },
+        {
           "created_by_id": "anonymous"
         }
       ]
@@ -91,6 +94,9 @@
       "$or": [
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.zugewiesen_an_email": "{{user.email}}"
         },
         {
           "created_by_id": "anonymous"
