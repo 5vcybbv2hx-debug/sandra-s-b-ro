@@ -32,6 +32,7 @@ export default function Sidebar() {
         { to: '/angebote', label: 'Angebote', icon: FileText },
         { to: '/vertraege', label: 'Verträge', icon: Shield },
         { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
+        { to: '/personalfragebogen', label: 'Personalbögen', icon: FileText },
       ],
     },
     {
@@ -84,6 +85,7 @@ export default function Sidebar() {
         { to: '/angebote', label: 'Angebote', icon: FileText },
         { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
         { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
+        { to: '/personalfragebogen', label: 'Personalfragebogen', icon: FileText },
         { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
       ],
     },

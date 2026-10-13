@@ -1,0 +1,197 @@
+{
+  "name": "Personalfragebogen",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Entwurf",
+        "Eingereicht"
+      ],
+      "default": "Entwurf"
+    },
+    "email": {
+      "type": "string",
+      "title": "App-Konto E-Mail"
+    },
+    "name": {
+      "type": "string",
+      "title": "Name, Vorname"
+    },
+    "strasse": {
+      "type": "string",
+      "title": "Stra\u00dfe"
+    },
+    "plz_ort": {
+      "type": "string",
+      "title": "PLZ, Wohnort"
+    },
+    "nationalitaet": {
+      "type": "string",
+      "title": "Nationalit\u00e4t"
+    },
+    "eintritt": {
+      "type": "string",
+      "format": "date",
+      "title": "Eintritt"
+    },
+    "taetigkeit": {
+      "type": "string",
+      "title": "T\u00e4tigkeit"
+    },
+    "ausbildung": {
+      "type": "string",
+      "title": "Schul- und Berufsausbildung"
+    },
+    "wochenstunden": {
+      "type": "string",
+      "title": "W\u00f6chentliche Arbeitszeit"
+    },
+    "az_mo": {
+      "type": "string",
+      "title": "Mo"
+    },
+    "az_di": {
+      "type": "string",
+      "title": "Di"
+    },
+    "az_mi": {
+      "type": "string",
+      "title": "Mi"
+    },
+    "az_do": {
+      "type": "string",
+      "title": "Do"
+    },
+    "az_fr": {
+      "type": "string",
+      "title": "Fr"
+    },
+    "az_sa": {
+      "type": "string",
+      "title": "Sa"
+    },
+    "az_so": {
+      "type": "string",
+      "title": "So"
+    },
+    "lohn": {
+      "type": "string",
+      "title": "Stundenlohn/Festbetrag"
+    },
+    "steuer_id": {
+      "type": "string",
+      "title": "Steuer-IdNr."
+    },
+    "rv_nummer": {
+      "type": "string",
+      "title": "Rentenversicherungs-Nr."
+    },
+    "geburtsdatum": {
+      "type": "string",
+      "format": "date",
+      "title": "Geburtsdatum"
+    },
+    "geburtsname": {
+      "type": "string",
+      "title": "Geburtsname"
+    },
+    "geburtsort": {
+      "type": "string",
+      "title": "Geburtsort"
+    },
+    "krankenkasse": {
+      "type": "string",
+      "title": "Krankenkasse"
+    },
+    "befreiungsantrag": {
+      "type": "string",
+      "title": "Befreiungsantrag RV",
+      "enum": [
+        "ja",
+        "nein"
+      ]
+    },
+    "versicherungspflichtig": {
+      "type": "string",
+      "title": "Versicherungspflichtige Besch\u00e4ftigung",
+      "enum": [
+        "ja",
+        "nein"
+      ]
+    },
+    "weitere_geringfuegig": {
+      "type": "string",
+      "title": "Weitere geringf\u00fcgige Besch\u00e4ftigung",
+      "enum": [
+        "ja",
+        "nein"
+      ]
+    },
+    "weitere_details": {
+      "type": "string",
+      "title": "Seit wann / Verdienst"
+    },
+    "kreditinstitut": {
+      "type": "string",
+      "title": "Kreditinstitut"
+    },
+    "iban": {
+      "type": "string",
+      "title": "IBAN"
+    },
+    "bic": {
+      "type": "string",
+      "title": "BIC"
+    },
+    "ort_datum": {
+      "type": "string",
+      "title": "Ort, Datum"
+    },
+    "bestaetigt": {
+      "type": "boolean",
+      "title": "Versicherung best\u00e4tigt",
+      "default": false
+    },
+    "eingereicht_am": {
+      "type": "string",
+      "format": "date",
+      "title": "Eingereicht am"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

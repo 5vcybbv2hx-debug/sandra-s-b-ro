@@ -35,6 +35,7 @@ import Druckauftraege from '@/pages/Druckauftraege';
 import Vorlagen from '@/pages/Vorlagen';
 import NasSync from '@/pages/NasSync';
 import RechnungsMatching from '@/pages/RechnungsMatching';
+import Personalfragebogen from '@/pages/Personalfragebogen';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AuthenticatedApp = () => {
@@ -91,6 +92,7 @@ const AuthenticatedApp = () => {
           <Route path="/druckauftraege" element={<Druckauftraege />} />
           <Route path="/vorlagen" element={<Vorlagen />} />
           <Route path="/nas-sync" element={<NasSync />} />
+          <Route path="/personalfragebogen" element={<Personalfragebogen />} />
           <Route path="/rechnungs-matching" element={<RechnungsMatching />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
