@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useTimer } from '@/lib/TimerContext';
+import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Play, Square, Plus, Phone, CheckCircle2, Car, Pin, PinOff, ShoppingBag, AlertCircle } from 'lucide-react';
-import { todayISO, daysAgoISO } from '@/lib/format';
+import { Play, Square, Plus, Phone, CheckCircle2, Car, Pin, PinOff, ShoppingBag, AlertCircle, UserCircle } from 'lucide-react';
+import { todayISO, daysAgoISO, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
 import MorgenroutineCard from '@/components/MorgenroutineCard';
 
@@ -19,6 +20,7 @@ function fmtElapsed(sec) {
 
 export default function Home() {
   const { activeTimer, elapsed, project: timerProject, startTimer, stopTimer } = useTimer();
+  const { user } = useAuth();
   const [d, setD] = useState(null);
 
   const markBestellt = async (id) => {
@@ -50,6 +52,7 @@ export default function Home() {
       const focused = aufgaben.filter(t => t.heute_fokussiert);
       const unfocused = aufgaben.filter(t => !t.heute_fokussiert);
       const topTasks = [...focused, ...unfocused].slice(0, 3);
+      const myTasks = aufgaben.filter(t => t.zugewiesen_an_email === user?.email && !t.heute_fokussiert).slice(0, 5);
       const callbacks = notizen.filter(n => n.naechster_schritt).slice(0, 3);
       const todayFahrten = fahrten || [];
 
@@ -84,7 +87,7 @@ export default function Home() {
         stampInfo[id] = { count: recentStampCounts[id], lastDate: recentStampDate[id] };
       });
 
-      setD({ topTasks, callbacks, projects: smartProjects, firmen, todayFahrten, stampInfo, pinnedIds: [...pinnedIds], bestellungen: bestellungen || [] });
+      setD({ topTasks, myTasks, callbacks, projects: smartProjects, firmen, todayFahrten, stampInfo, pinnedIds: [...pinnedIds], bestellungen: bestellungen || [] });
     } catch (e) {
       console.error(e);
       toast.error('Dashboard konnte nicht geladen werden');
@@ -269,6 +272,29 @@ export default function Home() {
           </Button>
         </div>
       </Card>
+
+      {/* 3.5 Meine Aufgaben (zugewiesen) */}
+      {d.myTasks && d.myTasks.length > 0 && (
+        <Card className="p-5 shadow-sm border-brand/20">
+          <div className="flex items-center gap-2 mb-3">
+            <UserCircle className="w-5 h-5 text-brand" />
+            <h2 className="font-semibold">Meine Aufgaben</h2>
+            <span className="text-xs text-muted-foreground">({d.myTasks.length})</span>
+          </div>
+          <div className="space-y-1">
+            {d.myTasks.map(t => (
+              <div key={t.id} className="flex items-center gap-3 py-2 min-h-[48px]">
+                <button onClick={() => toggleTask(t)} className="w-6 h-6 rounded-full border-2 border-brand shrink-0 hover:bg-brand-light transition-colors" aria-label="Erledigen" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{t.titel}</p>
+                  {t.zugewiesen_von_name && <p className="text-xs text-muted-foreground">von {t.zugewiesen_von_name}</p>}
+                </div>
+                {t.faellig_am && <span className="text-xs text-muted-foreground shrink-0">{formatDate(t.faellig_am)}</span>}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* 4. Offene Rückrufe */}
       <Card className="p-5 shadow-sm">

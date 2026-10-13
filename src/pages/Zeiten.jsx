@@ -23,11 +23,13 @@ export default function Zeiten() {
   const [view, setView] = useState('day');
   const [timerForm, setTimerForm] = useState({ projekt_id: '', phase_id: '', beschreibung: '' });
   const [manualForm, setManualForm] = useState({ projekt_id: '', phase_id: '', datum: todayISO(), stunden: '', beschreibung: '' });
+  const [personFilter, setPersonFilter] = useState('');
+  const [mitarbeiter, setMitarbeiter] = useState([]);
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
-    try { const [e, p, ph] = await Promise.all([base44.entities.Zeiteintrag.list('-datum', 500), base44.entities.Projekt.list('-updated_date', 200), base44.entities.Projektphase.list('-updated_date', 500)]); setEintraege(e.filter((x) => !x.timer_laeuft)); setProjekte(p); setPhasen(ph); }
+    try { const [e, p, ph, ma] = await Promise.all([base44.entities.Zeiteintrag.list('-datum', 500), base44.entities.Projekt.list('-updated_date', 200), base44.entities.Projektphase.list('-updated_date', 500), base44.entities.Mitarbeiter.list('-name', 100).catch(() => [])]); setEintraege(e.filter((x) => !x.timer_laeuft)); setProjekte(p); setPhasen(ph); setMitarbeiter(ma); }
     catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
@@ -46,18 +48,19 @@ export default function Zeiten() {
 
   const handleDelete = async (id) => { await base44.entities.Zeiteintrag.delete(id); loadData(); };
 
+  const filteredEintraege = personFilter ? eintraege.filter((e) => e.created_by === personFilter) : eintraege;
   const now = new Date(); const dayOfWeek = (now.getDay() + 6) % 7;
   const monday = new Date(now); monday.setDate(now.getDate() - dayOfWeek); monday.setHours(0, 0, 0, 0);
   const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23, 59, 59, 999);
 
-  const weekEntries = eintraege.filter((e) => { if (!e.datum) return false; const d = new Date(e.datum); return d >= monday && d <= sunday; });
+  const weekEntries = filteredEintraege.filter((e) => { if (!e.datum) return false; const d = new Date(e.datum); return d >= monday && d <= sunday; });
   const weekHours = weekEntries.reduce((s, e) => s + (e.stunden || 0), 0);
-  const weekData = WEEKDAYS.map((day, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); const dayStr = d.toISOString().split('T')[0]; return { day, stunden: eintraege.filter((e) => e.datum === dayStr).reduce((s, e) => s + (e.stunden || 0), 0) }; });
+  const weekData = WEEKDAYS.map((day, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); const dayStr = d.toISOString().split('T')[0]; return { day, stunden: filteredEintraege.filter((e) => e.datum === dayStr).reduce((s, e) => s + (e.stunden || 0), 0) }; });
 
-  const todayEntries = eintraege.filter((e) => e.datum === today).sort((a, b) => (b.datum || '') > (a.datum || '') ? 1 : -1);
+  const todayEntries = filteredEintraege.filter((e) => e.datum === today).sort((a, b) => (b.datum || '') > (a.datum || '') ? 1 : -1);
   const todayHours = todayEntries.reduce((s, e) => s + (e.stunden || 0), 0);
 
-  const byProject = {}; eintraege.forEach((e) => { if (!byProject[e.projekt_id]) byProject[e.projekt_id] = []; byProject[e.projekt_id].push(e); });
+  const byProject = {}; filteredEintraege.forEach((e) => { if (!byProject[e.projekt_id]) byProject[e.projekt_id] = []; byProject[e.projekt_id].push(e); });
 
   const inputCls = 'min-h-[48px]';
 
@@ -69,6 +72,16 @@ export default function Zeiten() {
           {[['day', 'Tag'], ['week', 'Woche'], ['project', 'Projekt']].map(([v, l]) => <button key={v} onClick={() => setView(v)} className={cn('px-4 py-2 rounded-lg text-sm font-medium min-h-[40px]', view === v ? 'bg-white shadow-sm text-brand-dark' : 'text-muted-foreground')}>{l}</button>)}
         </div>
       </div>
+
+      {mitarbeiter.length > 0 && (
+        <Select value={personFilter || '_all'} onValueChange={(v) => setPersonFilter(v === '_all' ? '' : v)}>
+          <SelectTrigger className="min-h-[48px] max-w-xs"><SelectValue placeholder="Alle Personen" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Alle Personen</SelectItem>
+            {mitarbeiter.filter(m => m.linked_email).map((m) => <SelectItem key={m.id} value={m.linked_email}>{m.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      )}
 
       {activeTimer && (<Card className="p-5 bg-brand text-white border-0 shadow-md"><div className="flex items-center justify-between"><div className="flex items-center gap-3 min-w-0"><TimerIcon className="w-5 h-5 shrink-0" /><div className="min-w-0"><p className="text-sm text-white/80">Laufender Timer</p><p className="font-semibold truncate">{project?.projekt_name || 'Projekt'}</p></div></div><div className="flex items-center gap-3 shrink-0"><span className="font-mono text-xl font-bold tabular-nums">{Math.floor(elapsed / 3600)}:{String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:{String(elapsed % 60).padStart(2, '0')}</span><button onClick={stopTimer} className="bg-white text-brand rounded-full px-4 py-2 text-sm font-semibold min-h-[40px]">Stop</button></div></div></Card>)}
 

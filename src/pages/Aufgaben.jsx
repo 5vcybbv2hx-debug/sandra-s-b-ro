@@ -6,9 +6,10 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Check, Calendar, FolderKanban, Filter } from 'lucide-react';
+import { Plus, Check, Calendar, FolderKanban, Filter, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { todayISO, formatDate } from '@/lib/format';
+import { filterByDelegation } from '@/lib/aufgabeHelpers';
 import { toast } from 'sonner';
 
 const prioConfig = {
@@ -27,6 +28,7 @@ export default function Aufgaben() {
   const [newProjekt, setNewProjekt] = useState('');
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [delegationFilter, setDelegationFilter] = useState('all');
 
   useEffect(() => { loadData(); }, [user]);
 
@@ -47,7 +49,7 @@ export default function Aufgaben() {
   const changePriority = async (task, prioritaet) => { await base44.entities.Aufgabe.update(task.id, { prioritaet }); loadData(); };
 
   const open = aufgaben.filter((t) => !t.erledigt);
-  let filtered = open;
+  let filtered = filterByDelegation(open, delegationFilter, user);
   if (filter === 'heute') filtered = open.filter((t) => t.faellig_am <= today);
   else if (filter === 'woche') { const end = new Date(); end.setDate(end.getDate() + 7); filtered = open.filter((t) => !t.faellig_am || new Date(t.faellig_am) <= end); }
   else if (filter === 'ohne') filtered = open.filter((t) => !t.projekt_id);
@@ -60,7 +62,7 @@ export default function Aufgaben() {
   const renderTask = (task) => (
     <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-cardbg min-h-[48px]">
       <button onClick={() => toggleErledigt(task)} className={cn('w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0', task.erledigt ? 'bg-status-abgeschlossen border-status-abgeschlossen' : prioConfig[task.prioritaet].border)}>{task.erledigt && <Check className="w-4 h-4 text-white" />}</button>
-      <div className="flex-1 min-w-0"><p className="font-medium truncate">{task.titel}</p><div className="flex items-center gap-2 flex-wrap mt-0.5">{task.projekt_id && <Link to={`/projekte/${task.projekt_id}`} className="text-xs text-brand hover:underline flex items-center gap-1"><FolderKanban className="w-3 h-3" /> {projName(task.projekt_id)}</Link>}{task.faellig_am && <span className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(task.faellig_am)}</span>}</div></div>
+      <div className="flex-1 min-w-0"><p className="font-medium truncate">{task.titel}</p><div className="flex items-center gap-2 flex-wrap mt-0.5">{task.projekt_id && <Link to={`/projekte/${task.projekt_id}`} className="text-xs text-brand hover:underline flex items-center gap-1"><FolderKanban className="w-3 h-3" /> {projName(task.projekt_id)}</Link>}{task.faellig_am && <span className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(task.faellig_am)}</span>}{task.zugewiesen_an_name && <span className="text-xs text-brand-dark flex items-center gap-1"><UserCircle className="w-3 h-3" /> {task.zugewiesen_an_name}</span>}</div></div>
       <Select value={task.prioritaet} onValueChange={(v) => changePriority(task, v)}><SelectTrigger className="w-14 h-8 min-h-[32px] text-xs shrink-0"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="A">A</SelectItem><SelectItem value="B">B</SelectItem><SelectItem value="C">C</SelectItem></SelectContent></Select>
     </div>
   );
@@ -80,6 +82,12 @@ export default function Aufgaben() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl md:text-3xl font-bold">Aufgaben</h1>
         <Select value={filter} onValueChange={setFilter}><SelectTrigger className="w-40 min-h-[48px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Alle</SelectItem><SelectItem value="heute">Heute</SelectItem><SelectItem value="woche">Diese Woche</SelectItem><SelectItem value="ohne">Ohne Projekt</SelectItem></SelectContent></Select>
+      </div>
+
+      <div className="flex gap-2">
+        {[{ value: 'all', label: 'Alle' }, { value: 'mine', label: 'Meine' }, { value: 'byme', label: 'Von mir' }].map(chip => (
+          <button key={chip.value} onClick={() => setDelegationFilter(chip.value)} className={cn('px-4 py-2 rounded-full text-sm font-medium min-h-[40px] transition-colors', delegationFilter === chip.value ? 'bg-brand text-white' : 'bg-cardbg text-muted-foreground hover:text-foreground')}>{chip.label}</button>
+        ))}
       </div>
 
       {showQuickAdd ? (

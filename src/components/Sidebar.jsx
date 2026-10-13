@@ -4,11 +4,13 @@ import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock,
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
+import { useMyTaskCount } from '@/lib/useMyTaskCount';
 
 export default function Sidebar() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const todayCount = useTodayEventCount();
+  const myTaskCount = useMyTaskCount();
   const [collapsed, setCollapsed] = useState({ Verwaltung: true, 'Zeit & Geld': true, Operativ: true, System: true, Mehr: true });
 
   const toggle = (title) => setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }));
@@ -46,7 +48,7 @@ export default function Sidebar() {
       title: 'Operativ', collapsible: true,
       items: [
         { to: '/telefon', label: 'Telefonnotizen', icon: Phone },
-        { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
+        { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare, badge: myTaskCount },
         { to: '/fahrten', label: 'Fahrtenliste', icon: Car },
         { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
       ],
@@ -69,7 +71,7 @@ export default function Sidebar() {
         { to: '/', label: 'Heute', icon: Home },
         { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
         { to: '/projekte', label: 'Projekte', icon: FolderKanban },
-        { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
+        { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare, badge: myTaskCount },
         { to: '/fahrten', label: 'Fahrten', icon: Car },
         { to: '/telefon', label: 'Telefon', icon: Phone },
         { to: '/kalender', label: 'Kalender', icon: CalendarDays, badge: todayCount },
@@ -80,6 +82,7 @@ export default function Sidebar() {
       title: 'Mehr', collapsible: true,
       items: [
         { to: '/angebote', label: 'Angebote', icon: FileText },
+        { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
         { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
         { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
       ],

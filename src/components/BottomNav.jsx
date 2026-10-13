@@ -4,11 +4,13 @@ import { Home, FolderKanban, CalendarDays, Clock, MoreHorizontal, Settings, Chec
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useTodayEventCount } from '@/lib/useTodayEventCount';
+import { useMyTaskCount } from '@/lib/useMyTaskCount';
 
 export default function BottomNav() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const todayCount = useTodayEventCount();
+  const myTaskCount = useMyTaskCount();
   const [mehrOpen, setMehrOpen] = useState(false);
 
   const adminItems = [
@@ -27,7 +29,7 @@ export default function BottomNav() {
   ];
 
   const mehrItems = [
-    { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
+    { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare, badge: myTaskCount },
     { to: '/fahrten', label: 'Fahrten', icon: Car },
     { to: '/telefon', label: 'Telefon', icon: Phone },
     { to: '/kontakte', label: 'Kontakte', icon: Users },
@@ -69,6 +71,7 @@ export default function BottomNav() {
             >
               <item.icon className="w-5 h-5 shrink-0" />
               <span className="font-medium">{item.label}</span>
+              {item.badge > 0 && <span className="ml-auto bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{item.badge}</span>}
             </NavLink>
           ))}
         </div>
