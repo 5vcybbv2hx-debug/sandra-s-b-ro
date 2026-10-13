@@ -87,12 +87,22 @@ export default function Projekte() {
         return (a.projekt_name || '').localeCompare(b.projekt_name || '');
       });
     });
+    const activeCounts = new Map();
+    filtered.forEach((p) => {
+      if (p.status === 'Aktiv') {
+        const key = getGroupKey(p);
+        activeCounts.set(key, (activeCounts.get(key) || 0) + 1);
+      }
+    });
     const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
       if (a === OHNE_KEY) return 1;
       if (b === OHNE_KEY) return -1;
+      const aActive = (activeCounts.get(a) || 0) > 0 ? 1 : 0;
+      const bActive = (activeCounts.get(b) || 0) > 0 ? 1 : 0;
+      if (aActive !== bActive) return bActive - aActive;
       return a.localeCompare(b);
     });
-    return sortedKeys.map((key) => ({ key, label: key === OHNE_KEY ? OHNE_LABEL : key, projekte: groups.get(key) }));
+    return sortedKeys.map((key) => ({ key, label: key === OHNE_KEY ? OHNE_LABEL : key, projekte: groups.get(key), hasActive: (activeCounts.get(key) || 0) > 0 }));
   }, [filtered, isAdmin, firmen]);
 
   // Active counts per group (from filtered set)
@@ -210,6 +220,7 @@ export default function Projekte() {
               groupName={g.label}
               projekte={g.projekte}
               activeCount={activeCountByGroup.get(g.key) || 0}
+              dimmed={!g.hasActive}
               expanded={expandedGroups.has(g.key)}
               onToggle={() => toggleGroup(g.key)}
             />

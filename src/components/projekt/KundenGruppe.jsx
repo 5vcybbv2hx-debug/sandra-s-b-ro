@@ -1,9 +1,10 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import ProjektRow from './ProjektRow';
+import { cn } from '@/lib/utils';
 
-export default function KundenGruppe({ groupName, projekte, activeCount, expanded, onToggle }) {
+export default function KundenGruppe({ groupName, projekte, activeCount, dimmed, expanded, onToggle }) {
   return (
-    <div className="border border-border rounded-2xl overflow-hidden bg-white">
+    <div className={cn('border border-border rounded-2xl overflow-hidden bg-white transition-opacity', dimmed && 'opacity-60')}>
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between gap-3 py-4 px-4 hover:bg-muted/30 transition-colors min-h-[52px]"
@@ -12,7 +13,7 @@ export default function KundenGruppe({ groupName, projekte, activeCount, expande
           {expanded
             ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
             : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
-          <p className="font-semibold truncate">{groupName}</p>
+          <p className={cn('font-semibold truncate', dimmed && 'text-muted-foreground')}>{groupName}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {activeCount > 0 && (
