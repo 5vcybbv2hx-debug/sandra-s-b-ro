@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, AlertCircle, Plus } from 'lucide-react';
+import { Clock, AlertCircle, Plus, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { todayISO, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ export default function ProjektPhasen({ projekt, firma, onUpdate }) {
   const [zeiten, setZeiten] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quickEntry, setQuickEntry] = useState({ phase_id: '', stunden: '', beschreibung: '' });
+  const [erfahrungswerte, setErfahrungswerte] = useState([]);
 
   useEffect(() => { loadData(); }, [projekt.id]);
 
@@ -28,6 +29,8 @@ export default function ProjektPhasen({ projekt, firma, onUpdate }) {
       setPhasen(ph);
       const z = await base44.entities.Zeiteintrag.filter({ projekt_id: projekt.id }, '-datum', 500);
       setZeiten(z.filter((x) => !x.timer_laeuft));
+      const erf = await base44.entities.Phasen_Erfahrungswerte.filter({ projektart: projekt.projektart }).catch(() => []);
+      setErfahrungswerte(erf);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
@@ -37,6 +40,9 @@ export default function ProjektPhasen({ projekt, firma, onUpdate }) {
 
   const updatePhase = async (phaseId, field, value) => {
     await base44.entities.Projektphase.update(phaseId, { [field]: field === 'stunden_geschaetzt' ? Number(value) || 0 : value });
+    if (field === 'status' && value === 'Abgeschlossen') {
+      try { await base44.functions.invoke('onPhaseAbgeschlossen', { phaseId }); } catch (e) { console.error('Erfahrungswerte Update fehlgeschlagen', e); }
+    }
     loadData(); onUpdate();
   };
 
@@ -75,6 +81,7 @@ export default function ProjektPhasen({ projekt, firma, onUpdate }) {
                 <div><p className="text-xs text-muted-foreground">Gebucht (h)</p><p className="font-bold text-brand-dark mt-2">{ist.toFixed(1)}</p></div>
                 <div><p className="text-xs text-muted-foreground">Deadline</p><Input type="date" defaultValue={ph.enddatum_geplant || ''} onBlur={(e) => updatePhase(ph.id, 'enddatum_geplant', e.target.value)} className="h-9 min-h-[36px] mt-1 text-xs" key={`d-${ph.id}-${ph.enddatum_geplant}`} /></div>
               </div>
+              {(() => { const erf = erfahrungswerte.find(e => e.phase === ph.phase); return erf && erf.vertrauens_score >= 0.6 && <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1"><Lightbulb className="w-3 h-3 shrink-0 text-amber-500" />Bei {projekt.projektart} dauerte {ph.phase} zuletzt Ø {erf.durchschnitt_stunden} h (aus {erf.anzahl_projekte} Projekten)</p>; })()}
               {geplant > 0 && <div className="w-full bg-cardbg rounded-full h-2 overflow-hidden mt-2"><div className={cn('h-full rounded-full', ist > geplant ? 'bg-red-500' : 'bg-brand')} style={{ width: `${Math.min(100, (ist / geplant) * 100)}%` }} /></div>}
               {ph.enddatum_geplant && ph.status !== 'Abgeschlossen' && <p className={cn('text-xs font-medium mt-2', isOverdue ? 'text-red-600' : daysUntil(ph.enddatum_geplant) <= 7 ? 'text-amber-600' : 'text-muted-foreground')}><Clock className="w-3 h-3 inline mr-1" />{isOverdue ? `${Math.abs(daysUntil(ph.enddatum_geplant))} Tage überfällig` : daysUntil(ph.enddatum_geplant) === 0 ? 'Heute fällig' : `In ${daysUntil(ph.enddatum_geplant)} Tagen`}</p>}
               <PhaseDokumente phase={ph.phase} projekt={projekt} firma={firma} />
