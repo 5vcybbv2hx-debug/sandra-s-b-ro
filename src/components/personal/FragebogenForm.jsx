@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import SignaturePad from '@/components/personal/SignaturePad';
 
 const DAYS = [['az_mo', 'Mo'], ['az_di', 'Di'], ['az_mi', 'Mi'], ['az_do', 'Do'], ['az_fr', 'Fr'], ['az_sa', 'Sa'], ['az_so', 'So']];
 
@@ -40,8 +41,8 @@ export default function FragebogenForm({ initial, user, onSaved }) {
   );
 
   const save = async (submit) => {
-    if (submit && (!f.name || !f.bestaetigt)) {
-      toast.error('Bitte Name ausfüllen und die Versicherung bestätigen');
+    if (submit && (!f.name || !f.bestaetigt || !f.unterschrift)) {
+      toast.error('Bitte Name ausfüllen, die Versicherung bestätigen und unterschreiben');
       return;
     }
     setSaving(true);
@@ -121,6 +122,9 @@ export default function FragebogenForm({ initial, user, onSaved }) {
           <span className="text-sm font-medium">Ich bestätige diese Angaben</span>
         </label>
         {text('ort_datum', 'Ort, Datum')}
+        <Field label="Unterschrift">
+          <SignaturePad value={f.unterschrift} onChange={(v) => setF((p) => ({ ...p, unterschrift: v }))} />
+        </Field>
       </Card>
 
       <div className="flex gap-2">

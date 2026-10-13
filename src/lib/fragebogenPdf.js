@@ -50,6 +50,11 @@ export function downloadFragebogenPdf(f) {
   doc.setFontSize(8).text(doc.splitTextToSize(decl, 180), 15, y);
   y += 12;
   doc.setFontSize(10).text(`Bestätigt: ${f.bestaetigt ? 'Ja' : 'Nein'} | ${f.ort_datum || ''} | ${f.name || ''}`, 15, y);
+  y += 8;
+  doc.setFont('helvetica', 'bold').text('Unterschrift:', 15, y);
+  if (f.unterschrift) {
+    try { doc.addImage(f.unterschrift, 'PNG', 50, y - 12, 60, 24); } catch (e) {}
+  }
 
   doc.save(`Personalfragebogen_${(f.name || 'Mitarbeiter').replace(/[^\wäöüÄÖÜß-]+/g, '_')}.pdf`);
 }

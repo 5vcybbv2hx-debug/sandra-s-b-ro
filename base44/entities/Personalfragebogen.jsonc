@@ -154,6 +154,10 @@
       "title": "Versicherung best\u00e4tigt",
       "default": false
     },
+    "unterschrift": {
+      "type": "string",
+      "title": "Unterschrift (Data URL)"
+    },
     "eingereicht_am": {
       "type": "string",
       "format": "date",
