@@ -51,33 +51,18 @@
     "nachname"
   ],
   "rls": {
-    "read": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "anonymous"
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "anonymous"
-        }
-      ]
-    },
+    "read": {},
+    "create": {},
+    "update": {},
     "delete": {
       "$or": [
         {
           "created_by_id": "{{user.id}}"
         },
         {
-          "created_by_id": "anonymous"
+          "user_condition": {
+            "role": "admin"
+          }
         }
       ]
     }
