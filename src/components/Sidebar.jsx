@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Clock, CheckSquare, ChevronDown, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar } from 'lucide-react';
+import { Home, FolderKanban, Clock, CheckSquare, ChevronDown, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar, Bot } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useMyTaskCount } from '@/lib/useMyTaskCount';
+import { useElara } from '@/lib/ElaraContext';
 
 export default function Sidebar() {
   const { user } = useAuth();
   const myTaskCount = useMyTaskCount();
   const [mehrOpen, setMehrOpen] = useState(false);
+  const { openElara } = useElara();
 
   const mainItems = [
     { to: '/', label: 'Start', icon: Home, end: true },
@@ -87,8 +89,15 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
-      <div className="p-4 border-t border-border">
-        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+      <div className="p-3 border-t border-border space-y-1">
+        <button
+          onClick={openElara}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-cardbg hover:text-foreground transition-colors w-full min-h-[44px]"
+        >
+          <Bot className="w-5 h-5 shrink-0 text-brand" />
+          <span>Elara fragen…</span>
+        </button>
+        <p className="text-xs text-muted-foreground truncate px-3">{user?.email}</p>
       </div>
     </aside>
   );

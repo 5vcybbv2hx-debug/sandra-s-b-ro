@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Clock, CheckSquare, MoreHorizontal, X, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar } from 'lucide-react';
+import { Home, FolderKanban, Clock, CheckSquare, MoreHorizontal, X, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMyTaskCount } from '@/lib/useMyTaskCount';
+import { useElara } from '@/lib/ElaraContext';
 
 export default function BottomNav() {
   const myTaskCount = useMyTaskCount();
   const [mehrOpen, setMehrOpen] = useState(false);
+  const { openElara } = useElara();
 
   const mainItems = [
     { to: '/', label: 'Start', icon: Home, end: true },
@@ -40,6 +42,13 @@ export default function BottomNav() {
       {mehrOpen && <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMehrOpen(false)} />}
       {mehrOpen && (
         <div className="md:hidden fixed bottom-20 left-4 right-4 z-50 bg-white rounded-2xl shadow-xl border border-border overflow-hidden max-h-[60vh] overflow-y-auto">
+          <button
+            onClick={() => { openElara(); setMehrOpen(false); }}
+            className="flex items-center gap-3 px-5 py-3.5 min-h-[52px] border-b border-border/50 w-full text-left bg-brand-light/50"
+          >
+            <Bot className="w-5 h-5 shrink-0 text-brand-dark" />
+            <span className="font-medium text-brand-dark">Elara fragen…</span>
+          </button>
           {mehrItems.map((item) => (
             <NavLink
               key={item.to}
