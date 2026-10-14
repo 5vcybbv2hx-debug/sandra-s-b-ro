@@ -19,7 +19,13 @@ export default function Projekte() {
   const [firmen, setFirmen] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilterRaw] = useState(() => {
+    try { return sessionStorage.getItem('projekte_statusFilter') || 'Aktiv'; } catch { return 'Aktiv'; }
+  });
+  const setStatusFilter = (val) => {
+    setStatusFilterRaw(val);
+    try { sessionStorage.setItem('projekte_statusFilter', val); } catch {}
+  };
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const [showNew, setShowNew] = useState(false);
 
