@@ -1,103 +1,47 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Phone, CheckSquare, Wallet, Settings, Users, Clock, Calendar, CalendarDays, Euro, BarChart3, FileText, Car, Shield, UserCog, Printer, LayoutTemplate, HardDrive, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { Home, FolderKanban, Clock, CheckSquare, ChevronDown, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
-import { useTodayEventCount } from '@/lib/useTodayEventCount';
 import { useMyTaskCount } from '@/lib/useMyTaskCount';
 
 export default function Sidebar() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
-  const todayCount = useTodayEventCount();
   const myTaskCount = useMyTaskCount();
-  const [collapsed, setCollapsed] = useState({ Verwaltung: true, 'Zeit & Geld': true, Operativ: true, System: true, Mehr: true });
+  const [mehrOpen, setMehrOpen] = useState(false);
 
-  const toggle = (title) => setCollapsed((prev) => ({ ...prev, [title]: !prev[title] }));
-
-  // Admin sees everything (Backoffice + Operativ)
-  const adminSections = [
-    {
-      title: 'Schnellzugriff', collapsible: false,
-      items: [
-        { to: '/', label: 'Dashboard', icon: Home },
-        { to: '/projekte', label: 'Projekte', icon: FolderKanban },
-        { to: '/kalender', label: 'Kalender', icon: CalendarDays, badge: todayCount },
-      ],
-    },
-    {
-      title: 'Verwaltung', collapsible: true,
-      items: [
-        { to: '/kontakte', label: 'Kontakte', icon: Users },
-        { to: '/angebote', label: 'Angebote', icon: FileText },
-        { to: '/vertraege', label: 'Verträge', icon: Shield },
-        { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
-        { to: '/personalfragebogen', label: 'Personalbögen', icon: FileText },
-      ],
-    },
-    {
-      title: 'Zeit & Geld', collapsible: true,
-      items: [
-        { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
-        { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
-        { to: '/finanzen', label: 'Finanzen', icon: Wallet },
-        { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
-        { to: '/rechnungs-matching', label: 'Rechnungs-Matching', icon: FileSpreadsheet },
-      ],
-    },
-    {
-      title: 'Operativ', collapsible: true,
-      items: [
-        { to: '/telefon', label: 'Telefonnotizen', icon: Phone },
-        { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare, badge: myTaskCount },
-        { to: '/fahrten', label: 'Fahrtenliste', icon: Car },
-        { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
-      ],
-    },
-    {
-      title: 'System', collapsible: true,
-      items: [
-        { to: '/vorlagen', label: 'Vorlagen', icon: LayoutTemplate },
-        { to: '/nas-sync', label: 'NAS Sync', icon: HardDrive },
-        { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
-      ],
-    },
+  const mainItems = [
+    { to: '/', label: 'Start', icon: Home, end: true },
+    { to: '/projekte', label: 'Projekte', icon: FolderKanban },
+    { to: '/zeiten', label: 'Zeiten', icon: Clock },
+    { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare, badge: myTaskCount },
   ];
 
-  // Sandra sees only operative tools — backoffice hidden
-  const sandraSections = [
-    {
-      title: 'Täglich', collapsible: false,
-      items: [
-        { to: '/', label: 'Heute', icon: Home },
-        { to: '/zeiten', label: 'Zeiterfassung', icon: Clock },
-        { to: '/projekte', label: 'Projekte', icon: FolderKanban },
-        { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare, badge: myTaskCount },
-        { to: '/fahrten', label: 'Fahrten', icon: Car },
-        { to: '/telefon', label: 'Telefon', icon: Phone },
-        { to: '/kalender', label: 'Kalender', icon: CalendarDays, badge: todayCount },
-        { to: '/kontakte', label: 'Kontakte', icon: Users },
-      ],
-    },
-    {
-      title: 'Mehr', collapsible: true,
-      items: [
-        { to: '/angebote', label: 'Angebote', icon: FileText },
-        { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
-        { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
-        { to: '/personalfragebogen', label: 'Personalfragebogen', icon: FileText },
-        { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
-      ],
-    },
+  const mehrItems = [
+    { to: '/kalender', label: 'Kalender', icon: CalendarDays },
+    { to: '/telefon', label: 'Telefonnotizen', icon: Phone },
+    { to: '/fahrten', label: 'Fahrten', icon: Car },
+    { to: '/abrechnung', label: 'Abrechnung', icon: Euro },
+    { to: '/finanzen', label: 'Finanzen', icon: Wallet },
+    { to: '/kapazitaet', label: 'Kapazität & Planung', icon: BarChart3 },
+    { to: '/rechnungs-matching', label: 'Rechnungs-Matching', icon: FileSpreadsheet },
+    { to: '/kontakte', label: 'Kontakte', icon: Users },
+    { to: '/angebote', label: 'Angebote', icon: FileText },
+    { to: '/vertraege', label: 'Verträge', icon: Shield },
+    { to: '/mitarbeiter', label: 'Mitarbeiter', icon: UserCog },
+    { to: '/personalfragebogen', label: 'Personalbögen', icon: FileText },
+    { to: '/druckauftraege', label: 'Druckaufträge', icon: Printer },
+    { to: '/vorlagen', label: 'Vorlagen', icon: LayoutTemplate },
+    { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
+    { to: '/nas-sync', label: 'NAS Sync', icon: HardDrive },
+    { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
   ];
-
-  const sections = isAdmin ? adminSections : sandraSections;
 
   const renderItem = (item) => (
     <NavLink
       key={item.to}
       to={item.to}
-      end={item.to === '/'}
+      end={item.end}
       className={({ isActive }) =>
         cn(
           'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors min-h-[44px]',
@@ -129,41 +73,22 @@ export default function Sidebar() {
         </div>
       </div>
       <nav className="flex-1 px-3 overflow-y-auto pb-4">
-        {sections.map((section) => {
-          const isCollapsed = collapsed[section.title];
-          const isCollapsible = section.collapsible;
-          return (
-            <div key={section.title} className="mb-1">
-              {isCollapsible ? (
-                <button
-                  onClick={() => toggle(section.title)}
-                  className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {section.title}
-                  <ChevronDown
-                    className={cn('w-4 h-4 transition-transform duration-200', isCollapsed && 'rotate-180')}
-                  />
-                </button>
-              ) : (
-                <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {section.title}
-                </p>
-              )}
-              <div
-                className={cn(
-                  'overflow-hidden transition-all duration-200',
-                  isCollapsed ? 'max-h-0' : 'max-h-[600px]'
-                )}
-              >
-                <div className="space-y-0.5">{section.items.map(renderItem)}</div>
-              </div>
-            </div>
-          );
-        })}
+        <div className="space-y-0.5">{mainItems.map(renderItem)}</div>
+        <div className="mt-4">
+          <button
+            onClick={() => setMehrOpen(!mehrOpen)}
+            className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Mehr
+            <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', mehrOpen && 'rotate-180')} />
+          </button>
+          <div className={cn('overflow-hidden transition-all duration-200', mehrOpen ? 'max-h-[800px]' : 'max-h-0')}>
+            <div className="space-y-0.5">{mehrItems.map(renderItem)}</div>
+          </div>
+        </div>
       </nav>
       <div className="p-4 border-t border-border">
         <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{isAdmin ? 'Admin' : 'Nutzerin'}</p>
       </div>
     </aside>
   );

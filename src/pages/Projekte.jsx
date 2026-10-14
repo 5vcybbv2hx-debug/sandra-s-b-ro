@@ -143,7 +143,7 @@ export default function Projekte() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 max-w-[1150px] mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Projekte</h1>
@@ -213,7 +213,7 @@ export default function Projekte() {
       ) : grouped.length === 0 && pinnedProjekte.length === 0 ? (
         <p className="text-muted-foreground text-center py-12">Keine Projekte gefunden.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {grouped.map((g) => (
             <KundenGruppe
               key={g.key}

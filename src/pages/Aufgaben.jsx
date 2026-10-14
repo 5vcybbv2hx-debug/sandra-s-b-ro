@@ -78,7 +78,7 @@ export default function Aufgaben() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-5">
+    <div className="p-4 md:p-8 max-w-[1150px] mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl md:text-3xl font-bold">Aufgaben</h1>
         <Select value={filter} onValueChange={setFilter}><SelectTrigger className="w-40 min-h-[48px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Alle</SelectItem><SelectItem value="heute">Heute</SelectItem><SelectItem value="woche">Diese Woche</SelectItem><SelectItem value="ohne">Ohne Projekt</SelectItem></SelectContent></Select>

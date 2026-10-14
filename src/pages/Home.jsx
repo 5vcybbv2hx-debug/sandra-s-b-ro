@@ -1,39 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useTimer } from '@/lib/TimerContext';
 import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Play, Square, Plus, Phone, CheckCircle2, Car, Pin, PinOff, ShoppingBag, AlertCircle, UserCircle } from 'lucide-react';
+import { Plus, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 import { todayISO, daysAgoISO, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
-import MorgenroutineCard from '@/components/MorgenroutineCard';
 import FokusHeuteCard from '@/components/FokusHeuteCard';
-import TelefonNotizKarten from '@/components/TelefonNotizKarten';
-
-function fmtElapsed(sec) {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
 
 export default function Home() {
-  const { activeTimer, elapsed, project: timerProject, startTimer, stopTimer } = useTimer();
   const { user } = useAuth();
   const [d, setD] = useState(null);
-
-  const markBestellt = async (id) => {
-    try {
-      await base44.entities.Bestellliste.update(id, { status: 'Bestellt', bestellt_am: new Date().toISOString().split('T')[0] });
-      setD(prev => ({ ...prev, bestellungen: prev.bestellungen.filter(b => b.id !== id) }));
-      toast.success('Als bestellt markiert');
-    } catch (e) {
-      toast.error('Konnte nicht aktualisieren');
-    }
-  };
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState('');
 
@@ -41,55 +20,31 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const since = daysAgoISO(30);
-      const [aufgaben, notizen, projekte, firmen, fahrten, zeiteintraege, bestellungen] = await Promise.all([
+      const since = daysAgoISO(7);
+      const [aufgaben, zeiteintraege, projekte] = await Promise.all([
         base44.entities.Aufgabe.filter({ erledigt: false }),
-        base44.entities.Telefonnotiz.filter({ erledigt: false }),
-        base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 30),
-        base44.entities.Firma.list('-name', 200),
-        base44.entities.Fahrt.filter({ datum: todayISO() }, '-created_date', 10),
-        base44.entities.Zeiteintrag.filter({}, '-datum', 200).then(all => all.filter(z => z.datum >= since)).catch(() => []),
-        base44.entities.Bestellliste.filter({ status: 'Offen' }, '-created_date', 10).catch(() => []),
+        base44.entities.Zeiteintrag.filter({ datum: { $gte: since } }, '-datum', 200).catch(() => []),
+        base44.entities.Projekt.list('-updated_date', 200),
       ]);
-      const focused = aufgaben.filter(t => t.heute_fokussiert);
-      const unfocused = aufgaben.filter(t => !t.heute_fokussiert);
-      const topTasks = [...focused, ...unfocused].slice(0, 3);
-      const myTasks = aufgaben.filter(t => t.zugewiesen_an_email === user?.email && !t.heute_fokussiert).slice(0, 5);
-      const callbacks = notizen.filter(n => n.naechster_schritt).slice(0, 3);
-      const todayFahrten = fahrten || [];
 
-      // Smart Project-Sortierung: Pinned → kürzlich gestempelt → Rest
-      const recentStampCounts = {};
-      zeiteintraege.forEach(z => {
-        if (z.projekt_id) {
-          recentStampCounts[z.projekt_id] = (recentStampCounts[z.projekt_id] || 0) + 1;
-        }
-      });
-      const recentStampDate = {};
-      zeiteintraege.forEach(z => {
-        if (z.projekt_id) {
-          if (!recentStampDate[z.projekt_id] || z.datum > recentStampDate[z.projekt_id]) {
-            recentStampDate[z.projekt_id] = z.datum;
-          }
-        }
-      });
+      const myTasks = aufgaben
+        .filter(t => t.heute_fokussiert || t.zugewiesen_an_email === user?.email)
+        .sort((a, b) => {
+          if (a.heute_fokussiert && !b.heute_fokussiert) return -1;
+          if (!a.heute_fokussiert && b.heute_fokussiert) return 1;
+          const prio = { A: 0, B: 1, C: 2 };
+          return (prio[a.prioritaet] ?? 1) - (prio[b.prioritaet] ?? 1);
+        })
+        .slice(0, 8);
 
-      const pinned = projekte.filter(p => p.pinned).sort((a, b) => (b.pinned_order || 0) - (a.pinned_order || 0));
-      const pinnedIds = new Set(pinned.map(p => p.id));
-      const stamped = projekte.filter(p => !pinnedIds.has(p.id) && recentStampCounts[p.id])
-        .sort((a, b) => (recentStampDate[b.id] || '').localeCompare(recentStampDate[a.id] || ''));
-      const stampedIds = new Set(stamped.map(p => p.id));
-      const rest = projekte.filter(p => !pinnedIds.has(p.id) && !stampedIds.has(p.id));
+      const offeneZeiten = zeiteintraege
+        .filter(z => !z.ist_abgerechnet && !z.timer_laeuft)
+        .sort((a, b) => (b.datum || '').localeCompare(a.datum || ''))
+        .slice(0, 10);
 
-      const smartProjects = [...pinned, ...stamped, ...rest].slice(0, 6);
+      const projName = (pid) => projekte.find(p => p.id === pid)?.projekt_name || '—';
 
-      // Stempel-Info für Anzeige
-      const stampInfo = {};
-      Object.keys(recentStampCounts).forEach(id => {
-        stampInfo[id] = { count: recentStampCounts[id], lastDate: recentStampDate[id] };
-      });
-
-      setD({ topTasks, myTasks, callbacks, projects: smartProjects, firmen, todayFahrten, stampInfo, pinnedIds: [...pinnedIds], bestellungen: bestellungen || [] });
+      setD({ myTasks, offeneZeiten, projName });
     } catch (e) {
       console.error(e);
       toast.error('Dashboard konnte nicht geladen werden');
@@ -100,10 +55,7 @@ export default function Home() {
     await base44.entities.Aufgabe.update(t.id, { erledigt: true, erledigt_am: todayISO(), heute_fokussiert: false });
     loadData();
   };
-  const toggleCallback = async (n) => {
-    await base44.entities.Telefonnotiz.update(n.id, { erledigt: true });
-    loadData();
-  };
+
   const quickAdd = async () => {
     if (!newTask.trim()) return;
     await base44.entities.Aufgabe.create({ titel: newTask, prioritaet: 'B', heute_fokussiert: true, erledigt: false });
@@ -111,242 +63,88 @@ export default function Home() {
     loadData();
   };
 
-  const togglePin = async (p) => {
-    const newPinned = !p.pinned;
-    await base44.entities.Projekt.update(p.id, { pinned: newPinned, pinned_order: newPinned ? Date.now() : 0 });
-    toast.success(newPinned ? `${p.projekt_name} angeheftet` : `${p.projekt_name} entfernt`);
-    loadData();
-  };
-
-  const firmaName = (fid) => d?.firmen.find(f => f.id === fid)?.name || '';
-
-  const handleStartTimer = async (proj) => {
-    await startTimer(proj.id, '', '');
-    toast.success(`Timer gestartet für ${proj.projekt_name}`);
-  };
-
-  const formatStampDate = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    const today = new Date();
-    const diff = Math.floor((today - d) / 86400000);
-    if (diff === 0) return 'heute';
-    if (diff === 1) return 'gestern';
-    if (diff < 7) return `vor ${diff} Tagen`;
-    return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
-  };
-
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground">Lade Dashboard...</div>;
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Lade...</div>;
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-4">
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold">{greeting}, Sandra</h1>
-      </div>
+    <div className="p-4 md:p-8 max-w-[1150px] mx-auto space-y-5">
+      <h1 className="text-xl md:text-2xl font-bold">{greeting}, Sandra</h1>
 
-      {/* 1. Aktiver Timer */}
-      {activeTimer && (
-        <Card className="p-5 bg-brand text-white shadow-lg border-0">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-white/70 uppercase tracking-wide">Timer läuft</p>
-              <p className="font-semibold text-lg truncate">{timerProject?.projekt_name || 'Projekt'}</p>
-              <p className="text-3xl font-bold font-mono tabular-nums mt-1">{fmtElapsed(elapsed)}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Left: Meine Aufgaben + Fokus */}
+        <div className="space-y-5">
+          <Card className="p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 className="w-5 h-5 text-brand" />
+              <h2 className="font-semibold">Meine Aufgaben heute</h2>
             </div>
-            <Button size="lg" onClick={stopTimer} className="min-h-[56px] min-w-[56px] shrink-0 bg-white text-brand hover:bg-white/90 border-0">
-              <Square className="w-6 h-6 fill-current" />
-            </Button>
-          </div>
-        </Card>
-      )}
+            {d.myTasks.length === 0 ? (
+              <p className="text-center py-4 text-muted-foreground text-sm">Nichts offen — schöner Tag</p>
+            ) : (
+              <div className="space-y-1">
+                {d.myTasks.map(t => (
+                  <div key={t.id} className="flex items-center gap-3 py-2 min-h-[48px]">
+                    <button onClick={() => toggleTask(t)} className="w-6 h-6 rounded-full border-2 border-brand shrink-0 hover:bg-brand-light transition-colors" aria-label="Erledigen" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{t.titel}</p>
+                      {t.zugewiesen_von_name && <p className="text-xs text-muted-foreground">von {t.zugewiesen_von_name}</p>}
+                    </div>
+                    {t.prioritaet === 'A' && <span className="text-xs font-bold text-accent shrink-0">A</span>}
+                    {t.faellig_am && <span className="text-xs text-muted-foreground shrink-0">{formatDate(t.faellig_am)}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-3 flex gap-2">
+              <Input
+                value={newTask}
+                onChange={e => setNewTask(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && quickAdd()}
+                placeholder="Aufgabe hinzufügen..."
+                className="min-h-[44px]"
+              />
+              <Button onClick={quickAdd} size="icon" className="min-h-[44px] min-w-[44px] bg-brand hover:bg-brand-dark shrink-0">
+                <Plus className="w-5 h-5" />
+              </Button>
+            </div>
+          </Card>
 
-      {/* 1.5 Fokus heute — Planungs-Assistent */}
-      <FokusHeuteCard />
-
-      {/* 2. Projekte mit Timer-Start + Smart Sortierung */}
-      <div>
-        <div className="flex items-center justify-between px-1 mb-2">
-          <h2 className="text-sm font-medium text-muted-foreground">Projekte</h2>
-          {d.pinnedIds.length > 0 && (
-            <span className="text-xs text-muted-foreground">{d.pinnedIds.length} angeheftet</span>
-          )}
+          <FokusHeuteCard />
         </div>
-        <div className="space-y-2">
-          {d.projects.map(p => {
-            const isPinned = p.pinned;
-            const info = d.stampInfo[p.id];
-            return (
-              <Card key={p.id} className={`p-0 shadow-sm overflow-hidden ${isPinned ? 'border-brand/30 bg-brand-light/30' : ''}`}>
-                <div className="flex items-center gap-1">
-                  <Link to={`/projekte/${p.id}`} className="flex-1 min-w-0 p-4">
-                    <div className="flex items-center gap-2">
-                      {isPinned && <Pin className="w-3.5 h-3.5 text-brand shrink-0 fill-brand" />}
-                      <p className="font-semibold truncate">{p.projekt_name}</p>
+
+        {/* Right: Offene Zeiten */}
+        <div>
+          <Card className="p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-brand" />
+                <h2 className="font-semibold">Offene Zeiten</h2>
+              </div>
+              <Link to="/zeiten" className="text-sm text-brand hover:underline flex items-center gap-1">
+                Alle <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">Nicht abgerechnete Einträge der letzten 7 Tage</p>
+            {d.offeneZeiten.length === 0 ? (
+              <p className="text-center py-6 text-muted-foreground text-sm">Alles erfasst</p>
+            ) : (
+              <div className="space-y-1">
+                {d.offeneZeiten.map(z => (
+                  <Link key={z.id} to="/zeiten" className="flex items-center gap-3 py-2.5 min-h-[44px] border-b border-border/40 last:border-0 hover:bg-cardbg rounded-lg px-2 -mx-2 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate text-sm">{d.projName(z.projekt_id)}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(z.datum)}{z.beschreibung && ` · ${z.beschreibung}`}</p>
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-sm text-muted-foreground truncate">{firmaName(p.firma_id)}</p>
-                      {info && (
-                        <span className="text-xs text-muted-foreground/70 shrink-0">
-                          · {info.count}× gestempelt ({formatStampDate(info.lastDate)})
-                        </span>
-                      )}
-                    </div>
+                    <span className="font-bold text-brand-dark shrink-0">{z.stunden} h</span>
                   </Link>
-                  {/* Pin Toggle */}
-                  <button
-                    onClick={() => togglePin(p)}
-                    className="shrink-0 w-9 h-9 m-1 rounded-lg text-muted-foreground hover:text-brand hover:bg-brand-light/50 flex items-center justify-center transition-colors"
-                    aria-label={isPinned ? 'Projekt lösen' : 'Projekt anheften'}
-                  >
-                    {isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                  </button>
-                  {/* Timer Start */}
-                  <button
-                    onClick={() => handleStartTimer(p)}
-                    disabled={!!activeTimer}
-                    className="shrink-0 w-12 h-12 m-2 rounded-xl bg-brand-light text-brand-dark hover:bg-brand hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                    aria-label={`Timer starten für ${p.projekt_name}`}
-                  >
-                    <Play className="w-5 h-5 fill-current" />
-                  </button>
-                </div>
-              </Card>
-            );
-          })}
-          {d.projects.length === 0 && (
-            <p className="text-center py-4 text-muted-foreground text-sm">Keine aktiven Projekte</p>
-          )}
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
       </div>
-
-      {/* 2.5 Heutige Fahrten */}
-      {d.todayFahrten.length > 0 && (
-        <Card className="p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Car className="w-5 h-5 text-brand" />
-            <h2 className="font-semibold">Heutige Fahrten ({d.todayFahrten.length})</h2>
-          </div>
-          <div className="space-y-1">
-            {d.todayFahrten.map(f => (
-              <div key={f.id} className="flex items-center gap-3 py-2 min-h-[40px] text-sm">
-                <span className="text-muted-foreground font-mono text-xs">{f.kilometer || '?'} km</span>
-                <span className="font-medium flex-1 min-w-0 truncate">{f.startort || f.ziel || 'Fahrt'}</span>
-                {f.ziel && f.startort && <span className="text-muted-foreground truncate">→ {f.ziel}</span>}
-              </div>
-            ))}
-            <Link to="/fahrten" className="block text-center text-sm text-brand hover:underline pt-2">Alle Fahrten</Link>
-          </div>
-        </Card>
-      )}
-
-      {/* 3. Heute im Fokus */}
-      <Card className="p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <CheckCircle2 className="w-5 h-5 text-brand" />
-          <h2 className="font-semibold">Heute im Fokus</h2>
-        </div>
-        {d.topTasks.length === 0 ? (
-          <p className="text-center py-3 text-muted-foreground text-sm">Nichts geplant — relax 🌿</p>
-        ) : (
-          <div className="space-y-1">
-            {d.topTasks.map(t => (
-              <div key={t.id} className="flex items-center gap-3 py-2 min-h-[48px]">
-                <button
-                  onClick={() => toggleTask(t)}
-                  className="w-6 h-6 rounded-full border-2 border-brand shrink-0 hover:bg-brand-light transition-colors"
-                  aria-label="Erledigen"
-                />
-                <span className="font-medium flex-1 min-w-0 truncate">{t.titel}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="mt-3 flex gap-2">
-          <Input
-            value={newTask}
-            onChange={e => setNewTask(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && quickAdd()}
-            placeholder="Aufgabe hinzufügen..."
-            className="min-h-[44px]"
-          />
-          <Button onClick={quickAdd} size="icon" className="min-h-[44px] min-w-[44px] bg-brand hover:bg-brand-dark shrink-0">
-            <Plus className="w-5 h-5" />
-          </Button>
-        </div>
-      </Card>
-
-      {/* 3.5 Meine Aufgaben (zugewiesen) */}
-      {d.myTasks && d.myTasks.length > 0 && (
-        <Card className="p-5 shadow-sm border-brand/20">
-          <div className="flex items-center gap-2 mb-3">
-            <UserCircle className="w-5 h-5 text-brand" />
-            <h2 className="font-semibold">Meine Aufgaben</h2>
-            <span className="text-xs text-muted-foreground">({d.myTasks.length})</span>
-          </div>
-          <div className="space-y-1">
-            {d.myTasks.map(t => (
-              <div key={t.id} className="flex items-center gap-3 py-2 min-h-[48px]">
-                <button onClick={() => toggleTask(t)} className="w-6 h-6 rounded-full border-2 border-brand shrink-0 hover:bg-brand-light transition-colors" aria-label="Erledigen" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{t.titel}</p>
-                  {t.zugewiesen_von_name && <p className="text-xs text-muted-foreground">von {t.zugewiesen_von_name}</p>}
-                </div>
-                {t.faellig_am && <span className="text-xs text-muted-foreground shrink-0">{formatDate(t.faellig_am)}</span>}
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* 4. Offene Rückrufe — Smart Karten */}
-      <div>
-        <div className="flex items-center gap-2 mb-2 px-1">
-          <Phone className="w-4 h-4 text-accent" />
-          <h2 className="text-sm font-medium text-muted-foreground">Offene Rückrufe</h2>
-        </div>
-        <TelefonNotizKarten notizen={d.callbacks} projekte={d.projects} onErledigt={toggleCallback} />
-        {d.callbacks.length > 0 && (
-          <Link to="/telefon" className="block text-center text-sm text-brand hover:underline pt-2">
-            Alle anzeigen
-          </Link>
-        )}
-      </div>
-
-      {/* Bestellliste Quick-View — inline actions, no separate page */}
-      {d.bestellungen && d.bestellungen.length > 0 && (
-        <Card className="p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-brand" />
-              <h2 className="font-semibold">Material benötigt</h2>
-            </div>
-            <span className="text-xs text-muted-foreground">{d.bestellungen.length} offen</span>
-          </div>
-          <div className="space-y-1">
-            {d.bestellungen.slice(0, 5).map(b => (
-              <div key={b.id} className="flex items-center gap-3 py-2 min-h-[44px] text-sm">
-                {b.prioritaet === 'Dringend' && <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />}
-                <div className="flex-1 min-w-0">
-                  <span className="font-medium truncate block">{b.titel}</span>
-                  {b.menge && <span className="text-xs text-muted-foreground">{b.menge}</span>}
-                </div>
-                <button
-                  onClick={() => markBestellt(b.id)}
-                  className="shrink-0 px-3 py-1.5 rounded-lg bg-brand-light text-brand-dark hover:bg-brand hover:text-white text-xs font-medium transition-colors"
-                >
-                  Bestellt
-                </button>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Morgenroutine — einklappbare Card */}
-      <MorgenroutineCard />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Timer as TimerIcon, Plus, Play, Square, Pencil, Check, X } from 'lucide-react';
+import { Timer as TimerIcon, Plus, Play, Pencil, Check, X, AlertCircle } from 'lucide-react';
 import { useTimer } from '@/lib/TimerContext';
 import { formatDate, todayISO } from '@/lib/format';
 import { getWeeklyCapacity } from '@/lib/settings';
@@ -27,6 +27,7 @@ export default function Zeiten() {
   const [mitarbeiter, setMitarbeiter] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ stunden: '', beschreibung: '' });
+  const [duplicatePending, setDuplicatePending] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -42,9 +43,17 @@ export default function Zeiten() {
 
   const handleStartTimer = async () => { if (!timerForm.projekt_id) return; await startTimer(timerForm.projekt_id, timerForm.beschreibung, timerForm.phase_id); setTimerForm({ projekt_id: '', phase_id: '', beschreibung: '' }); toast.success('Timer gestartet'); };
 
-  const handleManualSave = async () => {
+  const checkDuplicate = (projekt_id, datum, stunden) => {
+    return eintraege.some(e => e.projekt_id === projekt_id && e.datum === datum && String(e.stunden) === String(stunden));
+  };
+
+  const handleManualSave = async (force = false) => {
     if (!manualForm.projekt_id || !manualForm.stunden) return;
-    try { await base44.entities.Zeiteintrag.create({ projekt_id: manualForm.projekt_id, phase_id: manualForm.phase_id || undefined, datum: manualForm.datum, stunden: parseFloat(manualForm.stunden), beschreibung: manualForm.beschreibung || 'Manuell' }); setManualForm({ ...manualForm, stunden: '', beschreibung: '' }); loadData(); toast.success('Zeit gebucht'); }
+    if (!force && checkDuplicate(manualForm.projekt_id, manualForm.datum, manualForm.stunden)) {
+      setDuplicatePending({ ...manualForm });
+      return;
+    }
+    try { await base44.entities.Zeiteintrag.create({ projekt_id: manualForm.projekt_id, phase_id: manualForm.phase_id || undefined, datum: manualForm.datum, stunden: parseFloat(manualForm.stunden), beschreibung: manualForm.beschreibung || 'Manuell' }); setManualForm({ ...manualForm, stunden: '', beschreibung: '' }); setDuplicatePending(null); loadData(); toast.success('Zeit gebucht'); }
     catch (e) { toast.error('Fehler'); }
   };
 
@@ -75,7 +84,7 @@ export default function Zeiten() {
   const inputCls = 'min-h-[48px]';
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-5">
+    <div className="p-4 md:p-8 max-w-[1150px] mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl md:text-3xl font-bold">Zeiterfassung</h1>
         <div className="flex gap-1 bg-cardbg rounded-xl p-1">
@@ -115,13 +124,86 @@ export default function Zeiten() {
           <Input type="number" step="0.25" value={manualForm.stunden} onChange={(e) => setManualForm({ ...manualForm, stunden: e.target.value })} placeholder="Stunden" className={inputCls} />
           <Input value={manualForm.beschreibung} onChange={(e) => setManualForm({ ...manualForm, beschreibung: e.target.value })} placeholder="Beschreibung" className={inputCls} />
         </div>
-        <Button onClick={handleManualSave} disabled={!manualForm.projekt_id || !manualForm.stunden} className="bg-accent hover:bg-accent-dark text-white min-h-[48px] w-full mt-2">Buchen</Button>
+        <Button onClick={() => handleManualSave(false)} disabled={!manualForm.projekt_id || !manualForm.stunden} className="bg-accent hover:bg-accent-dark text-white min-h-[48px] w-full mt-2">Buchen</Button>
       </Card>
+
+      {duplicatePending && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDuplicatePending(null)}>
+          <Card className="p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-5 h-5 text-amber-500" />
+              <h3 className="font-semibold">Schon erfasst?</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Ein Eintrag mit gleichem Projekt, Datum und Stunden existiert bereits.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setDuplicatePending(null)}>Abbrechen</Button>
+              <Button className="bg-brand hover:bg-brand-dark text-white" onClick={() => handleManualSave(true)}>Trotzdem speichern</Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {loading ? <p className="text-muted-foreground text-center py-8">Lade...</p> : view === 'day' ? (
         <Card className="p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4"><h2 className="font-semibold">Heute · {formatDate(today)}</h2><span className="text-lg font-bold text-brand-dark">{todayHours.toFixed(1)} h</span></div>
-          <div className="space-y-2">{todayEntries.map((e) => editingId === e.id ? (
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold">Heute · {formatDate(today)}</h2>
+            <span className="text-lg font-bold text-brand-dark">{todayHours.toFixed(1)} h</span>
+          </div>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-left text-xs text-muted-foreground uppercase tracking-wide">
+                  <th className="py-2 pr-4 font-medium">Projekt</th>
+                  <th className="py-2 pr-4 font-medium">Beschreibung</th>
+                  <th className="py-2 pr-4 font-medium w-24">Stunden</th>
+                  <th className="py-2 font-medium w-24 text-right">Aktionen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {todayEntries.map((e) => editingId === e.id ? (
+                  <tr key={e.id} className="border-b border-border/40">
+                    <td className="py-2 pr-4 text-sm font-medium truncate max-w-[200px]">{projName(e.projekt_id)}</td>
+                    <td className="py-2 pr-4">
+                      <Input value={editForm.beschreibung} onChange={(ev) => setEditForm({ ...editForm, beschreibung: ev.target.value })} placeholder="Beschreibung" className="h-9 min-h-[36px]" />
+                    </td>
+                    <td className="py-2 pr-4">
+                      <div className="flex items-center gap-1">
+                        <Input type="number" step="0.25" value={editForm.stunden} onChange={(ev) => setEditForm({ ...editForm, stunden: ev.target.value })} className="w-20 h-9 min-h-[36px]" />
+                        <span className="text-sm text-muted-foreground">h</span>
+                      </div>
+                    </td>
+                    <td className="py-2 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={handleSaveEdit} className="w-8 h-8 rounded-lg bg-brand text-white flex items-center justify-center shrink-0 hover:bg-brand-dark"><Check className="w-4 h-4" /></button>
+                        <button onClick={cancelEdit} className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0 hover:bg-muted/70"><X className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={e.id} className="border-b border-border/40 hover:bg-cardbg/50 transition-colors">
+                    <td className="py-3 pr-4 text-sm font-medium truncate max-w-[200px]">{projName(e.projekt_id)}</td>
+                    <td className="py-3 pr-4 text-sm text-muted-foreground truncate max-w-[300px]">{e.beschreibung || '—'}</td>
+                    <td className="py-3 pr-4 font-bold text-brand-dark">{e.stunden} h</td>
+                    <td className="py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => startEdit(e)} className="w-8 h-8 rounded-lg text-muted-foreground hover:text-brand hover:bg-brand-light/50 flex items-center justify-center transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDelete(e.id)} className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors"><X className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {todayEntries.length === 0 && (
+                  <tr><td colSpan={4} className="text-center py-6 text-muted-foreground">Keine Einträge heute.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-2">
+            {todayEntries.map((e) => editingId === e.id ? (
               <div key={e.id} className="p-3 bg-cardbg rounded-xl space-y-2">
                 <p className="text-sm font-medium truncate">{projName(e.projekt_id)}</p>
                 <div className="flex items-center gap-2">
@@ -143,7 +225,9 @@ export default function Zeiten() {
                   <button onClick={() => handleDelete(e.id)} className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors"><X className="w-4 h-4" /></button>
                 </div>
               </div>
-            ))}{todayEntries.length === 0 && <p className="text-muted-foreground text-center py-4">Keine Einträge heute.</p>}</div>
+            ))}
+            {todayEntries.length === 0 && <p className="text-muted-foreground text-center py-4">Keine Einträge heute.</p>}
+          </div>
         </Card>
       ) : view === 'week' ? (
         <Card className="p-5 shadow-sm">
@@ -151,7 +235,7 @@ export default function Zeiten() {
           <ResponsiveContainer width="100%" height={200}><BarChart data={weekData}><XAxis dataKey="day" axisLine={false} tickLine={false} /><YAxis hide /><Tooltip formatter={(v) => `${v} h`} /><Bar dataKey="stunden" fill="#00A8C8" radius={[8, 8, 0, 0]} /></BarChart></ResponsiveContainer>
         </Card>
       ) : (
-        <div className="space-y-3">{Object.entries(byProject).map(([pid, entries]) => { const hours = entries.reduce((s, e) => s + (e.stunden || 0), 0); return (<Card key={pid} className="p-4 shadow-sm"><div className="flex items-center justify-between mb-2"><h3 className="font-medium">{projName(pid)}</h3><span className="font-bold text-brand-dark">{hours.toFixed(1)} h</span></div><div className="space-y-1">{entries.slice(0, 5).map((e) => <div key={e.id} className="flex items-center justify-between text-sm p-2 min-h-[40px]"><span className="text-muted-foreground">{formatDate(e.datum)}</span><span>{e.stunden} h</span><span className="text-muted-foreground truncate ml-2">{e.beschreibung}</span></div>)}</div></Card>); })}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{Object.entries(byProject).map(([pid, entries]) => { const hours = entries.reduce((s, e) => s + (e.stunden || 0), 0); return (<Card key={pid} className="p-4 shadow-sm"><div className="flex items-center justify-between mb-2"><h3 className="font-medium truncate">{projName(pid)}</h3><span className="font-bold text-brand-dark shrink-0 ml-2">{hours.toFixed(1)} h</span></div><div className="space-y-1">{entries.slice(0, 5).map((e) => <div key={e.id} className="flex items-center justify-between text-sm p-2 min-h-[40px]"><span className="text-muted-foreground">{formatDate(e.datum)}</span><span>{e.stunden} h</span><span className="text-muted-foreground truncate ml-2">{e.beschreibung}</span></div>)}</div></Card>); })}</div>
       )}
     </div>
   );
