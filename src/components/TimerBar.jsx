@@ -1,21 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTimer } from '@/lib/TimerContext';
-import { base44 } from '@/api/base44Client';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Play, Square, Loader2, Timer } from 'lucide-react';
+import ProjektSelect from '@/components/ProjektSelect';
 import { toast } from 'sonner';
 
 export default function TimerBar() {
   const { activeTimer, elapsed, project, startTimer, stopTimer, loading } = useTimer();
-  const [projekte, setProjekte] = useState([]);
   const [selectedProjekt, setSelectedProjekt] = useState('');
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
-
-  useEffect(() => {
-    base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 100)
-      .then(setProjekte).catch(() => {});
-  }, []);
 
   const handleStart = async () => {
     if (!selectedProjekt) return;
@@ -58,7 +51,11 @@ export default function TimerBar() {
             <span className="font-mono font-bold tabular-nums text-sm md:text-base shrink-0">
               {String(Math.floor(elapsed / 3600)).padStart(2, '0')}:{String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:{String(elapsed % 60).padStart(2, '0')}
             </span>
-            <button onClick={handleStop} disabled={stopping} className="shrink-0 bg-brand text-white rounded-lg px-3 py-1.5 text-sm font-semibold min-h-[36px] hover:bg-brand-dark disabled:opacity-50 flex items-center gap-1.5">
+            <button
+              onClick={handleStop}
+              disabled={stopping}
+              className="shrink-0 bg-brand text-white rounded-lg px-3 py-1.5 text-sm font-semibold min-h-[36px] hover:bg-brand-dark disabled:opacity-50 flex items-center gap-1.5"
+            >
               {stopping ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Square className="w-3.5 h-3.5 fill-current" />}
               Stop
             </button>
@@ -66,15 +63,18 @@ export default function TimerBar() {
         ) : (
           <>
             <Timer className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" />
-            <Select value={selectedProjekt} onValueChange={setSelectedProjekt}>
-              <SelectTrigger className="h-9 min-h-[36px] flex-1 max-w-md text-sm border-border">
-                <SelectValue placeholder="Projekt wählen..." />
-              </SelectTrigger>
-              <SelectContent>
-                {projekte.map(p => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <button onClick={handleStart} disabled={!selectedProjekt || starting} className="shrink-0 bg-brand text-white rounded-lg px-4 py-1.5 text-sm font-semibold min-h-[36px] hover:bg-brand-dark disabled:opacity-50 flex items-center gap-1.5">
+            <ProjektSelect
+              value={selectedProjekt}
+              onValueChange={setSelectedProjekt}
+              placeholder="Projekt wählen..."
+              filter={{ status: 'Aktiv' }}
+              className="flex-1 max-w-md min-h-[36px]"
+            />
+            <button
+              onClick={handleStart}
+              disabled={!selectedProjekt || starting}
+              className="shrink-0 bg-brand text-white rounded-lg px-4 py-1.5 text-sm font-semibold min-h-[36px] hover:bg-brand-dark disabled:opacity-50 flex items-center gap-1.5"
+            >
               {starting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
               Start
             </button>
