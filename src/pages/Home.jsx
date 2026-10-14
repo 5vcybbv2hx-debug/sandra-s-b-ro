@@ -11,6 +11,7 @@ import { todayISO, daysAgoISO, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
 import MorgenroutineCard from '@/components/MorgenroutineCard';
 import FokusHeuteCard from '@/components/FokusHeuteCard';
+import TelefonNotizKarten from '@/components/TelefonNotizKarten';
 
 function fmtElapsed(sec) {
   const h = Math.floor(sec / 3600);
@@ -300,38 +301,19 @@ export default function Home() {
         </Card>
       )}
 
-      {/* 4. Offene Rückrufe */}
-      <Card className="p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <Phone className="w-5 h-5 text-accent" />
-          <h2 className="font-semibold">Offene Rückrufe</h2>
+      {/* 4. Offene Rückrufe — Smart Karten */}
+      <div>
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <Phone className="w-4 h-4 text-accent" />
+          <h2 className="text-sm font-medium text-muted-foreground">Offene Rückrufe</h2>
         </div>
-        {d.callbacks.length === 0 ? (
-          <p className="text-center py-3 text-muted-foreground text-sm">Keine offenen Rückrufe ✓</p>
-        ) : (
-          <div className="space-y-1">
-            {d.callbacks.map(n => (
-              <div key={n.id} className="flex items-center gap-3 py-2 min-h-[48px]">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{n.kontakt_name}</p>
-                  <p className="text-sm text-muted-foreground truncate">{n.naechster_schritt}</p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toggleCallback(n)}
-                  className="min-h-[36px] shrink-0 text-status-abgeschlossen border-status-abgeschlossen/30 hover:bg-status-abgeschlossen/10"
-                >
-                  Erledigt
-                </Button>
-              </div>
-            ))}
-            <Link to="/telefon" className="block text-center text-sm text-brand hover:underline pt-2">
-              Alle anzeigen
-            </Link>
-          </div>
+        <TelefonNotizKarten notizen={d.callbacks} projekte={d.projects} onErledigt={toggleCallback} />
+        {d.callbacks.length > 0 && (
+          <Link to="/telefon" className="block text-center text-sm text-brand hover:underline pt-2">
+            Alle anzeigen
+          </Link>
         )}
-      </Card>
+      </div>
 
       {/* Bestellliste Quick-View — inline actions, no separate page */}
       {d.bestellungen && d.bestellungen.length > 0 && (

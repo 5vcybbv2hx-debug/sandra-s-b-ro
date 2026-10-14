@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Timer as TimerIcon, Plus, Play, Square } from 'lucide-react';
+import { Timer as TimerIcon, Plus, Play, Square, Pencil, Check, X } from 'lucide-react';
 import { useTimer } from '@/lib/TimerContext';
 import { formatDate, todayISO } from '@/lib/format';
 import { getWeeklyCapacity } from '@/lib/settings';
@@ -25,6 +25,8 @@ export default function Zeiten() {
   const [manualForm, setManualForm] = useState({ projekt_id: '', phase_id: '', datum: todayISO(), stunden: '', beschreibung: '' });
   const [personFilter, setPersonFilter] = useState('');
   const [mitarbeiter, setMitarbeiter] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ stunden: '', beschreibung: '' });
 
   useEffect(() => { loadData(); }, []);
 
@@ -47,6 +49,14 @@ export default function Zeiten() {
   };
 
   const handleDelete = async (id) => { await base44.entities.Zeiteintrag.delete(id); loadData(); };
+
+  const startEdit = (e) => { setEditingId(e.id); setEditForm({ stunden: String(e.stunden), beschreibung: e.beschreibung || '' }); };
+  const cancelEdit = () => { setEditingId(null); };
+  const handleSaveEdit = async () => {
+    if (!editForm.stunden || isNaN(parseFloat(editForm.stunden))) return;
+    try { await base44.entities.Zeiteintrag.update(editingId, { stunden: parseFloat(editForm.stunden), beschreibung: editForm.beschreibung }); setEditingId(null); loadData(); toast.success('Zeit aktualisiert'); }
+    catch (e) { toast.error('Fehler'); }
+  };
 
   const filteredEintraege = personFilter ? eintraege.filter((e) => e.created_by === personFilter) : eintraege;
   const now = new Date(); const dayOfWeek = (now.getDay() + 6) % 7;
@@ -111,7 +121,29 @@ export default function Zeiten() {
       {loading ? <p className="text-muted-foreground text-center py-8">Lade...</p> : view === 'day' ? (
         <Card className="p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4"><h2 className="font-semibold">Heute · {formatDate(today)}</h2><span className="text-lg font-bold text-brand-dark">{todayHours.toFixed(1)} h</span></div>
-          <div className="space-y-2">{todayEntries.map((e) => (<div key={e.id} className="flex items-center justify-between p-3 bg-cardbg rounded-xl min-h-[48px]"><div className="min-w-0"><p className="font-medium">{e.stunden} h</p><p className="text-sm text-muted-foreground truncate">{projName(e.projekt_id)} {e.beschreibung && `· ${e.beschreibung}`}</p></div><button onClick={() => handleDelete(e.id)} className="text-muted-foreground hover:text-destructive text-sm shrink-0">Löschen</button></div>))}{todayEntries.length === 0 && <p className="text-muted-foreground text-center py-4">Keine Einträge heute.</p>}</div>
+          <div className="space-y-2">{todayEntries.map((e) => editingId === e.id ? (
+              <div key={e.id} className="p-3 bg-cardbg rounded-xl space-y-2">
+                <p className="text-sm font-medium truncate">{projName(e.projekt_id)}</p>
+                <div className="flex items-center gap-2">
+                  <Input type="number" step="0.25" value={editForm.stunden} onChange={(ev) => setEditForm({ ...editForm, stunden: ev.target.value })} className="w-24 min-h-[40px]" />
+                  <span className="text-sm text-muted-foreground">h</span>
+                  <Input value={editForm.beschreibung} onChange={(ev) => setEditForm({ ...editForm, beschreibung: ev.target.value })} placeholder="Beschreibung" className="flex-1 min-h-[40px]" />
+                  <button onClick={handleSaveEdit} className="w-9 h-9 rounded-lg bg-brand text-white flex items-center justify-center shrink-0 hover:bg-brand-dark"><Check className="w-4 h-4" /></button>
+                  <button onClick={cancelEdit} className="w-9 h-9 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0 hover:bg-muted/70"><X className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ) : (
+              <div key={e.id} className="flex items-center justify-between p-3 bg-cardbg rounded-xl min-h-[48px]">
+                <div className="min-w-0">
+                  <p className="font-medium">{e.stunden} h</p>
+                  <p className="text-sm text-muted-foreground truncate">{projName(e.projekt_id)} {e.beschreibung && `· ${e.beschreibung}`}</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => startEdit(e)} className="w-8 h-8 rounded-lg text-muted-foreground hover:text-brand hover:bg-brand-light/50 flex items-center justify-center transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDelete(e.id)} className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors"><X className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}{todayEntries.length === 0 && <p className="text-muted-foreground text-center py-4">Keine Einträge heute.</p>}</div>
         </Card>
       ) : view === 'week' ? (
         <Card className="p-5 shadow-sm">

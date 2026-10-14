@@ -19,6 +19,7 @@ export default function PhoneModal({ open, onOpenChange, presetAnsprechpartnerId
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [showResults, setShowResults] = useState(false);
   const [form, setForm] = useState({ projekt_id: '', besprochen: '', naechster_schritt: '', termin: '', als_aufgabe: false, typ: 'Eingehend' });
+  const [manualPhone, setManualPhone] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function PhoneModal({ open, onOpenChange, presetAnsprechpartnerId
       Promise.all([base44.entities.Ansprechpartner.list('-nachname', 200), base44.entities.Firma.list('-name', 200), base44.entities.Projekt.list('-updated_date', 200)])
         .then(([p, f, pr]) => { setAnsprechpartner(p); setFirmen(f); setAllProjekte(pr); if (presetAnsprechpartnerId) { const preset = p.find((x) => x.id === presetAnsprechpartnerId); if (preset) { setSelectedPerson(preset); setSearch(`${preset.vorname} ${preset.nachname}`); } } }).catch(() => {});
       setForm({ projekt_id: '', besprochen: '', naechster_schritt: '', termin: '', als_aufgabe: false, typ: 'Eingehend' });
+      setManualPhone('');
       if (!presetAnsprechpartnerId) { setSelectedPerson(null); setSearch(''); }
     }
   }, [open, presetAnsprechpartnerId]);
@@ -42,7 +44,7 @@ export default function PhoneModal({ open, onOpenChange, presetAnsprechpartnerId
     setSaving(true);
     try {
       const personName = selectedPerson ? `${selectedPerson.vorname} ${selectedPerson.nachname}` : search.trim();
-      await base44.entities.Telefonnotiz.create({ ansprechpartner_id: selectedPerson?.id || undefined, kontakt_name: personName, telefonnummer: selectedPerson?.telefon || '', projekt_id: form.projekt_id || undefined, besprochen: form.besprochen, naechster_schritt: form.naechster_schritt, termin: form.termin || undefined, datum: new Date().toISOString(), typ: form.typ, als_aufgabe_angelegt: form.als_aufgabe });
+      await base44.entities.Telefonnotiz.create({ ansprechpartner_id: selectedPerson?.id || undefined, kontakt_name: personName, telefonnummer: selectedPerson?.telefon || manualPhone || '', projekt_id: form.projekt_id || undefined, besprochen: form.besprochen, naechster_schritt: form.naechster_schritt, termin: form.termin || undefined, datum: new Date().toISOString(), typ: form.typ, als_aufgabe_angelegt: form.als_aufgabe });
       if (selectedPerson) await base44.entities.Ansprechpartner.update(selectedPerson.id, { letzter_kontakt: todayISO() });
       if (form.als_aufgabe && form.naechster_schritt.trim()) await base44.entities.Aufgabe.create({ titel: form.naechster_schritt, projekt_id: form.projekt_id || undefined, prioritaet: 'A', erledigt: false });
       toast.success('Telefonat notiert'); onOpenChange(false);
@@ -60,6 +62,7 @@ export default function PhoneModal({ open, onOpenChange, presetAnsprechpartnerId
             {showResults && !selectedPerson && (<div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-xl shadow-lg max-h-64 overflow-y-auto">{filteredPersons.map((p) => (<button key={p.id} onClick={() => selectPerson(p)} className="w-full flex items-center justify-between gap-2 p-3 hover:bg-accent text-left min-h-[48px] border-b border-border/50 last:border-0"><div className="min-w-0"><p className="font-medium truncate">{p.vorname} {p.nachname}</p><p className="text-sm text-muted-foreground truncate">{firmaName(p.firma_id) || 'Privatperson'} {p.rolle && `· ${p.rolle}`}</p></div>{p.telefon && <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1"><Phone className="w-3 h-3" /> {p.telefon}</span>}</button>))}{filteredPersons.length === 0 && <p className="p-3 text-sm text-muted-foreground text-center">Keine Treffer.</p>}</div>)}
           </div>
           {selectedPerson && (<div className="p-3 bg-cardbg rounded-xl space-y-1"><div className="flex items-center gap-2">{selectedFirma ? <><Building2 className="w-4 h-4 text-brand" /><span className="text-sm font-medium">{selectedFirma.name}</span></> : <span className="text-sm text-muted-foreground">Privatperson</span>}</div>{selectedPerson.telefon && <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-accent" /><span className="text-sm">{selectedPerson.telefon}</span></div>}</div>)}
+          {!selectedPerson && search.trim() && (<div><Label>Telefonnummer (optional)</Label><div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /><Input value={manualPhone} onChange={(e) => setManualPhone(e.target.value)} placeholder="Telefonnummer eingeben" className="pl-10 min-h-[48px]" /></div><p className="text-xs text-muted-foreground mt-1">Neuer Kontakt wird gespeichert.</p></div>)}
           <div><Label>Projekt (optional)</Label><Select value={form.projekt_id} onValueChange={(v) => setForm({ ...form, projekt_id: v })}><SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Projekt wählen" /></SelectTrigger><SelectContent>{personProjekte.map((p) => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}</SelectContent></Select></div>
           <div><Label>Besprochen</Label><Textarea value={form.besprochen} onChange={(e) => setForm({ ...form, besprochen: e.target.value })} rows={3} placeholder="Worum ging es?" /></div>
           <div><Label>Nächster Schritt</Label><Textarea value={form.naechster_schritt} onChange={(e) => setForm({ ...form, naechster_schritt: e.target.value })} rows={2} placeholder="Was ist zu tun?" /></div>
