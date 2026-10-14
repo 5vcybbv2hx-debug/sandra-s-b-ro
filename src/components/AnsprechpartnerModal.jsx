@@ -55,7 +55,7 @@ export default function AnsprechpartnerModal({ open, onClose, onCreated, editPer
           </div>
           <div><Label>Notizen</Label><Textarea value={form.notizen} onChange={(e) => setForm({ ...form, notizen: e.target.value })} rows={3} /></div>
         </div>
-        <DialogFooter><Button variant="outline" onClick={onClose} className="min-h-[48px]">Abbrechen</Button><Button onClick={handleSave} disabled={!form.vorname.trim() || !form.nachname.trim() || saving} className="min-h-[48px] bg-accent hover:bg-accent-dark text-white">{saving ? 'Speichert...' : 'Speichern'}</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={onClose} className="min-h-[48px]">Abbrechen</Button><Button onClick={handleSave} disabled={!form.vorname.trim() || !form.nachname.trim() || saving} className="min-h-[48px] bg-brand hover:bg-brand-dark text-white">{saving ? 'Speichert...' : 'Speichern'}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );

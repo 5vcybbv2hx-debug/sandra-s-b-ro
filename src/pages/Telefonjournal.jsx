@@ -39,7 +39,7 @@ export default function Telefonjournal() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap"><p className="font-medium">{n.kontakt_name}</p>{n.typ === 'Eingehend' ? <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">Eingehend</span> : <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Ausgehend</span>}</div>
                   <p className="text-xs text-muted-foreground mt-0.5">{formatDateTime(n.datum)}</p>
-                  {proj && <Link to={`/projekte/${proj.id}`} className="text-xs text-brand hover:underline">{proj.projekt_name}</Link>}
+                  {proj && <Link to={`/projekte/${proj.id}`} className="text-xs text-accent hover:underline">{proj.projekt_name}</Link>}
                   <p className="text-sm mt-1">{n.besprochen}</p>
                   {n.naechster_schritt && <p className="text-sm font-medium text-accent mt-1">→ {n.naechster_schritt}</p>}
                   {n.termin && <p className="text-xs text-muted-foreground mt-1">Termin: {formatDate(n.termin)}</p>}

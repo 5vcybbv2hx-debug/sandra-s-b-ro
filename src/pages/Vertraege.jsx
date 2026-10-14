@@ -127,7 +127,7 @@ export default function Vertraege() {
                 </div>
               </div>
               {v.dokument_url && (
-                <a href={v.dokument_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 text-xs text-brand hover:underline mt-2">
+                <a href={v.dokument_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 text-xs text-accent hover:underline mt-2">
                   <FileText className="w-3 h-3" /> Dokument öffnen
                 </a>
               )}

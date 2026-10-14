@@ -69,7 +69,7 @@ export default function PhoneModal({ open, onOpenChange, presetAnsprechpartnerId
           <div className="grid grid-cols-2 gap-3"><div><Label>Termin?</Label><Input type="date" value={form.termin} onChange={(e) => setForm({ ...form, termin: e.target.value })} className="min-h-[48px]" /></div><div><Label>Typ</Label><Select value={form.typ} onValueChange={(v) => setForm({ ...form, typ: v })}><SelectTrigger className="min-h-[48px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Eingehend">Eingehend</SelectItem><SelectItem value="Ausgehend">Ausgehend</SelectItem></SelectContent></Select></div></div>
           <div className="flex items-center justify-between p-3 bg-cardbg rounded-xl"><Label className="cursor-pointer">Als Aufgabe anlegen (Priorität A)</Label><Switch checked={form.als_aufgabe} onCheckedChange={(v) => setForm({ ...form, als_aufgabe: v })} /></div>
         </div>
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} className="min-h-[48px]">Abbrechen</Button><Button onClick={handleSave} disabled={(!selectedPerson && !search.trim()) || saving} className="min-h-[48px] bg-accent hover:bg-accent-dark text-white">{saving ? 'Speichert...' : 'Speichern'}</Button></DialogFooter>
+        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} className="min-h-[48px]">Abbrechen</Button><Button onClick={handleSave} disabled={(!selectedPerson && !search.trim()) || saving} className="min-h-[48px] bg-brand hover:bg-brand-dark text-white">{saving ? 'Speichert...' : 'Speichern'}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );

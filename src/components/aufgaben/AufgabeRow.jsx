@@ -42,7 +42,7 @@ export default function AufgabeRow({
           {task.projekt_id && (
             <Link
               to={`/projekte/${task.projekt_id}`}
-              className="text-xs text-brand hover:underline flex items-center gap-1"
+              className="text-xs text-accent hover:underline flex items-center gap-1"
             >
               <FolderKanban className="w-3 h-3" /> {projName(task.projekt_id)}
             </Link>
@@ -69,8 +69,8 @@ export default function AufgabeRow({
           className={cn(
             'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
             task.heute_fokussiert
-              ? 'text-brand hover:bg-brand-light/50'
-              : 'text-muted-foreground/40 hover:text-brand hover:bg-brand-light/50'
+              ? 'text-accent hover:bg-accent-light/50'
+              : 'text-muted-foreground/40 hover:text-accent hover:bg-accent-light/50'
           )}
           title={task.heute_fokussiert ? 'Aus Meinem Tag entfernen' : 'Zu Meinem Tag'}
         >

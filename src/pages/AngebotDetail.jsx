@@ -77,7 +77,7 @@ export default function AngebotDetail() {
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Firma</p>
-              {firma ? <Link to={`/firmen/${firma.id}`} className="font-medium text-sm hover:text-brand truncate block">{firma.name}</Link> : <p className="text-sm">—</p>}
+              {firma ? <Link to={`/firmen/${firma.id}`} className="font-medium text-sm hover:text-accent truncate block">{firma.name}</Link> : <p className="text-sm">—</p>}
             </div>
           </div>
         </Card>
@@ -89,7 +89,7 @@ export default function AngebotDetail() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Projekt</p>
-                <Link to={`/projekte/${projekt.id}`} className="font-medium text-sm hover:text-brand truncate block">{projekt.projekt_name}</Link>
+                <Link to={`/projekte/${projekt.id}`} className="font-medium text-sm hover:text-accent truncate block">{projekt.projekt_name}</Link>
               </div>
             </div>
           </Card>

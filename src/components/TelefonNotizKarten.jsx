@@ -32,7 +32,7 @@ export default function TelefonNotizKarten({ notizen, projekte, onErledigt }) {
                 </div>
               )}
               {n.projekt_id && (
-                <Link to={`/projekte/${n.projekt_id}`} className="text-xs text-brand hover:underline mt-1 inline-block truncate">
+                <Link to={`/projekte/${n.projekt_id}`} className="text-xs text-accent hover:underline mt-1 inline-block truncate">
                   {projName(n.projekt_id)}
                 </Link>
               )}

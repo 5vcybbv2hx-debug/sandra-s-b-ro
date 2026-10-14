@@ -64,7 +64,7 @@ export default function ProjektDetail() {
         <div className="min-w-0">
           <h1 className="text-2xl md:text-3xl font-bold">{projekt.projekt_name}</h1>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
-            {firma && <Link to={`/firmen/${firma.id}`} className="inline-flex items-center gap-1 text-sm text-brand hover:underline"><Building2 className="w-3.5 h-3.5" /> {firma.name}</Link>}
+            {firma && <Link to={`/firmen/${firma.id}`} className="inline-flex items-center gap-1 text-sm text-accent hover:underline"><Building2 className="w-3.5 h-3.5" /> {firma.name}</Link>}
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">

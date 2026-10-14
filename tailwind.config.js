@@ -12,19 +12,19 @@ module.exports = {
   		colors: {
   			background: 'hsl(var(--background))',
   			brand: {
-  				DEFAULT: '#00C9B7',
-  				light: '#E0FAF5',
-  				dark: '#009E8F'
+  				DEFAULT: '#E61CAC',
+  				light: '#FDE6F2',
+  				dark: '#B8148A'
   			},
   			accent: {
-  				DEFAULT: '#E91E8C',
-  				light: '#FDE6F2',
-  				dark: '#B81770'
+  				DEFAULT: '#0099db',
+  				light: '#E0F2FB',
+  				dark: '#007AB8'
   			},
   			cardbg: '#F7FAFA',
   			status: {
   				anfrage: '#E91E8C',
-  				aktiv: '#00C9B7',
+  				aktiv: '#E61CAC',
   				wartend: '#F59E0B',
   				abgeschlossen: '#10B981',
   				archiviert: '#9CA3AF'
@@ -52,7 +52,9 @@ module.exports = {
   			},
   			accent: {
   				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
+  				foreground: 'hsl(var(--accent-foreground))',
+  				light: '#E0F2FB',
+  				dark: '#007AB8'
   			},
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',

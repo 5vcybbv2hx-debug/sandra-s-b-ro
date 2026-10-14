@@ -252,7 +252,7 @@ export default function Zeiten() {
         <Button
           onClick={() => handleManualSave(false)}
           disabled={!manualForm.projekt_id || !manualForm.stunden}
-          className="bg-accent hover:bg-accent-dark text-white min-h-[44px] w-full mt-2"
+          className="bg-brand hover:bg-brand-dark text-white min-h-[44px] w-full mt-2"
         >
           <Plus className="w-4 h-4 mr-1" /> Buchen
         </Button>

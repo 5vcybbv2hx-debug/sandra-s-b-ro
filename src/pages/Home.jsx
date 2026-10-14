@@ -122,7 +122,7 @@ export default function Home() {
                 <Clock className="w-5 h-5 text-brand" />
                 <h2 className="font-semibold">Offene Zeiten</h2>
               </div>
-              <Link to="/zeiten" className="text-sm text-brand hover:underline flex items-center gap-1">
+              <Link to="/zeiten" className="text-sm text-accent hover:underline flex items-center gap-1">
                 Alle <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

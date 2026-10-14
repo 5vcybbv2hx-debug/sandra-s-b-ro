@@ -93,7 +93,7 @@ export default function Kontakte() {
               <span>{count} Kontakte</span>
             </div>
           </div>
-          <Link to={`/firmen/${f.id}`} onClick={(e) => e.stopPropagation()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cardbg text-muted-foreground hover:text-brand transition-colors shrink-0">
+          <Link to={`/firmen/${f.id}`} onClick={(e) => e.stopPropagation()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-cardbg text-muted-foreground hover:text-accent transition-colors shrink-0">
             <ArrowRight className="w-4 h-4" />
           </Link>
           <ChevronDown className={cn('w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-200', isOpen && 'rotate-180')} />
@@ -121,7 +121,7 @@ export default function Kontakte() {
           <Button variant="outline" className="min-h-[48px]" onClick={() => setShowFirmaModal(true)}>
             <Plus className="w-4 h-4 mr-1" /> Neue Firma
           </Button>
-          <Button className="bg-accent hover:bg-accent-dark text-white min-h-[48px]" onClick={() => setShowPersonModal(true)}>
+          <Button className="bg-brand hover:bg-brand-dark text-white min-h-[48px]" onClick={() => setShowPersonModal(true)}>
             <Plus className="w-4 h-4 mr-1" /> Neue Person
           </Button>
         </div>

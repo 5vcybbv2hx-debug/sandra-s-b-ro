@@ -53,7 +53,7 @@ export default function Wochenuebersicht() {
           <button onClick={() => setOffset(offset - 1)} className="p-2 rounded-xl hover:bg-cardbg min-h-[40px]"><ChevronLeft className="w-5 h-5" /></button>
           <span className="text-sm font-medium min-w-[200px] text-center">{label}</span>
           <button onClick={() => setOffset(offset + 1)} className="p-2 rounded-xl hover:bg-cardbg min-h-[40px]"><ChevronRight className="w-5 h-5" /></button>
-          <button onClick={() => setOffset(0)} className="ml-2 text-sm text-brand hover:underline min-h-[40px] px-2">Heute</button>
+          <button onClick={() => setOffset(0)} className="ml-2 text-sm text-accent hover:underline min-h-[40px] px-2">Heute</button>
         </div>
       </div>
 
