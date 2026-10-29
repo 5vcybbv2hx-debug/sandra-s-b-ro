@@ -12,6 +12,11 @@
       "title": "Stundensatz Standard",
       "default": 65
     },
+    "fahrtkosten_satz_km": {
+      "type": "number",
+      "title": "Fahrtkosten-Satz pro km",
+      "default": 0.3
+    },
     "steuerrueckstellung_prozent": {
       "type": "number",
       "title": "Steuerr\u00fcckstellung %",

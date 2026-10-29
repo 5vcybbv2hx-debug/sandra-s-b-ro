@@ -16,6 +16,7 @@ import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 const LAST_PERSON_KEY = 'zeiten_letzte_person';
+const LAST_PROJEKT_KEY = 'zeiten_letztes_projekt';
 
 const getWeekKey = (dateStr) => {
   if (!dateStr) return 'unknown';
@@ -42,7 +43,7 @@ export default function Zeiten() {
   const [loading, setLoading] = useState(true);
   const [manualForm, setManualForm] = useState({
     mitarbeiter_id: (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PERSON_KEY)) || '',
-    projekt_id: '',
+    projekt_id: (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PROJEKT_KEY)) || '',
     datum: todayISO(),
     stunden: '',
     beschreibung: ''
@@ -53,6 +54,7 @@ export default function Zeiten() {
   const [toggledWeeks, setToggledWeeks] = useState({});
   const [zeitraum, setZeitraum] = useState('gesamt');
   const [personFilter, setPersonFilter] = useState('alle');
+  const [projektFilter, setProjektFilter] = useState('alle');
 
   useEffect(() => {
     loadData();
@@ -101,6 +103,7 @@ export default function Zeiten() {
         beschreibung: manualForm.beschreibung || ''
       });
       localStorage.setItem(LAST_PERSON_KEY, manualForm.mitarbeiter_id);
+      localStorage.setItem(LAST_PROJEKT_KEY, manualForm.projekt_id);
       setManualForm({ ...manualForm, stunden: '', beschreibung: '' });
       setDuplicatePending(null);
       loadData();
@@ -129,14 +132,14 @@ export default function Zeiten() {
   const cancelEdit = () => setEditingId(null);
 
   const handleSaveEdit = async () => {
-    if (!editForm.stunden || isNaN(parseFloat(editForm.stunden)) || !editForm.mitarbeiter_id) {
-      toast.error('Bitte Person und Stunden angeben');
+    if (!editForm.stunden || isNaN(parseFloat(editForm.stunden)) || !editForm.mitarbeiter_id || !editForm.projekt_id) {
+      toast.error('Bitte Person, Projekt und Stunden angeben');
       return;
     }
     try {
       await base44.entities.Zeiteintrag.update(editingId, {
         datum: editForm.datum,
-        projekt_id: editForm.projekt_id || undefined,
+        projekt_id: editForm.projekt_id,
         mitarbeiter_id: editForm.mitarbeiter_id,
         stunden: parseFloat(editForm.stunden),
         beschreibung: editForm.beschreibung
@@ -175,6 +178,7 @@ export default function Zeiten() {
 
   const gefiltert = eintraege.filter(e => inZeitraum(e.datum));
   const sichtbar = gefiltert.filter(e => {
+    if (projektFilter !== 'alle' && e.projekt_id !== projektFilter) return false;
     if (personFilter === 'alle') return true;
     if (personFilter === 'ohne') return !e.mitarbeiter_id;
     return e.mitarbeiter_id === personFilter;
@@ -359,7 +363,7 @@ export default function Zeiten() {
 
       {/* Filter */}
       <Card className="p-3 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Select value={zeitraum} onValueChange={setZeitraum}>
             <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -375,6 +379,13 @@ export default function Zeiten() {
               <SelectItem value="alle">Alle Personen</SelectItem>
               <SelectItem value="ohne">Ohne Person</SelectItem>
               {mitarbeiter.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={projektFilter} onValueChange={setProjektFilter}>
+            <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="alle">Alle Projekte</SelectItem>
+              {projekte.map(p => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

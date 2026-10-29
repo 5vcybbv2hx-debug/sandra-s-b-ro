@@ -27,6 +27,15 @@
       "type": "number",
       "title": "Kilometer"
     },
+    "km_satz": {
+      "type": "number",
+      "title": "Km-Satz (\u20ac/km)"
+    },
+    "abrechenbar": {
+      "type": "boolean",
+      "title": "Abrechenbar",
+      "default": true
+    },
     "projekt_id": {
       "type": "string",
       "reference": "Projekt",

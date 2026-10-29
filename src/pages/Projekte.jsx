@@ -3,10 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Pin, X } from 'lucide-react';
 import ProjektRow from '@/components/projekt/ProjektRow';
 import KundenGruppe from '@/components/projekt/KundenGruppe';
 import ProjektStartWizard from '@/components/projekt/ProjektStartWizard';
+import ProjektAuswertung from '@/components/projekt/ProjektAuswertung';
 import { cn } from '@/lib/utils';
 
 const OHNE_KEY = '__ohne__';
@@ -17,6 +20,10 @@ export default function Projekte() {
   const isAdmin = user?.role === 'admin';
   const [projekte, setProjekte] = useState([]);
   const [firmen, setFirmen] = useState([]);
+  const [zeiten, setZeiten] = useState([]);
+  const [fahrten, setFahrten] = useState([]);
+  const [mitarbeiter, setMitarbeiter] = useState([]);
+  const [auswertungZeitraum, setAuswertungZeitraum] = useState('gesamt');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilterRaw] = useState(() => {
@@ -33,8 +40,16 @@ export default function Projekte() {
 
   const loadProjekte = async () => {
     try {
-      const data = await base44.entities.Projekt.list('-updated_date', 500);
+      const [data, z, f, m] = await Promise.all([
+        base44.entities.Projekt.list('-updated_date', 500),
+        base44.entities.Zeiteintrag.list('-datum', 2000),
+        base44.entities.Fahrt.list('-datum', 2000),
+        base44.entities.Mitarbeiter.list('-name', 200),
+      ]);
       setProjekte(data);
+      setZeiten(z);
+      setFahrten(f);
+      setMitarbeiter(m);
       if (isAdmin) {
         try {
           const fi = await base44.entities.Firma.list('-name', 200);
@@ -199,6 +214,31 @@ export default function Projekte() {
           </button>
         )}
       </div>
+
+      {/* Auswertung */}
+      <Card className="p-4 shadow-sm mb-6">
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+          <div>
+            <h2 className="font-semibold">Auswertung</h2>
+            <p className="text-xs text-muted-foreground">Stunden, Kilometer und Kosten je Projekt</p>
+          </div>
+          <Select value={auswertungZeitraum} onValueChange={setAuswertungZeitraum}>
+            <SelectTrigger className="w-44 min-h-[44px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monat">Dieser Monat</SelectItem>
+              <SelectItem value="quartal">Dieses Quartal</SelectItem>
+              <SelectItem value="gesamt">Gesamt</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <ProjektAuswertung
+          projekte={filtered}
+          zeiten={zeiten}
+          fahrten={fahrten}
+          mitarbeiter={mitarbeiter}
+          zeitraum={auswertungZeitraum}
+        />
+      </Card>
 
       {/* Pinned Section */}
       {pinnedProjekte.length > 0 && (

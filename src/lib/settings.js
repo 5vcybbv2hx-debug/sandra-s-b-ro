@@ -14,6 +14,7 @@ export function getDefaultSteuerProzent() { return getSettings().steuerrueckstel
 export function getMonthlyUmsatzziel() { return getSettings().monatliches_umsatzziel || 6500; }
 export function getErfahrungswerte() { return getSettings().erfahrungswerte || {}; }
 export function getWarningThreshold() { return getSettings().warning_threshold || 80; }
+export function getKmSatz() { const v = Number(getSettings().fahrtkosten_satz_km); return v > 0 ? v : 0.3; }
 
 // Sync settings from server (Kapazitaetseinstellung entity) to localStorage
 // Call this on app init to ensure settings are consistent across devices
@@ -26,6 +27,7 @@ export async function syncSettingsFromServer() {
       saveSettings({
         woechentliche_zielstunden: s.woechentliche_zielstunden,
         stundensatz_standard: s.stundensatz_standard,
+        fahrtkosten_satz_km: s.fahrtkosten_satz_km ?? getSettings().fahrtkosten_satz_km,
         steuerrueckstellung_prozent: s.steuerrueckstellung_prozent,
         monatliches_umsatzziel: s.monatliches_umsatzziel,
         erfahrungswerte: s.erfahrungswerte || {},

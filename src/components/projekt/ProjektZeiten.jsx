@@ -1,34 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useTimer } from '@/lib/TimerContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import PersonSelect from '@/components/zeiten/PersonSelect';
 import { Play, Plus, Trash2 } from 'lucide-react';
-import { formatCurrency, formatDate, formatDuration, todayISO } from '@/lib/format';
+import { formatDate, formatDuration, todayISO } from '@/lib/format';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
-export default function ProjektZeiten({ projekt }) {
+const LAST_PERSON_KEY = 'zeiten_letzte_person';
+
+export default function ProjektZeiten({ projekt, zeiten = [], mitarbeiter = [], loading, reload }) {
   const { activeTimer, elapsed, startTimer, stopTimer } = useTimer();
-  const [eintraege, setEintraege] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [timerDesc, setTimerDesc] = useState('');
-  const [manual, setManual] = useState({ datum: todayISO(), stunden: '', beschreibung: '' });
-
-  useEffect(() => {
-    loadEintraege();
-  }, [projekt.id]);
-
-  const loadEintraege = async () => {
-    try {
-      const data = await base44.entities.Zeiteintrag.filter({ projekt_id: projekt.id }, '-datum', 200);
-      setEintraege(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [manual, setManual] = useState({
+    datum: todayISO(),
+    mitarbeiter_id: (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PERSON_KEY)) || '',
+    stunden: '',
+    beschreibung: '',
+  });
 
   const handleStartTimer = async () => {
     await startTimer(projekt.id, timerDesc);
@@ -41,13 +33,15 @@ export default function ProjektZeiten({ projekt }) {
     try {
       await base44.entities.Zeiteintrag.create({
         projekt_id: projekt.id,
+        mitarbeiter_id: manual.mitarbeiter_id || undefined,
         datum: manual.datum,
         stunden: parseFloat(manual.stunden),
         beschreibung: manual.beschreibung,
         erfassungsart: 'Manuell',
       });
-      setManual({ datum: todayISO(), stunden: '', beschreibung: '' });
-      loadEintraege();
+      if (manual.mitarbeiter_id) localStorage.setItem(LAST_PERSON_KEY, manual.mitarbeiter_id);
+      setManual({ ...manual, stunden: '', beschreibung: '' });
+      reload?.();
       toast.success('Zeiteintrag gespeichert');
     } catch (e) {
       toast.error('Fehler');
@@ -56,26 +50,31 @@ export default function ProjektZeiten({ projekt }) {
 
   const handleDelete = async (id) => {
     await base44.entities.Zeiteintrag.delete(id);
-    loadEintraege();
+    reload?.();
   };
 
-  const gesamtStunden = eintraege.reduce((sum, e) => sum + (e.stunden || 0), 0);
-  const gesamtBetrag =
-    projekt.abrechnungsart === 'Pauschal' ? projekt.pauschalbetrag : gesamtStunden * projekt.stundensatz;
+  const sichtbar = zeiten.filter((z) => !z.timer_laeuft);
+  const personName = (id) => mitarbeiter.find((m) => m.id === id)?.name || '—';
+  const gesamtStunden = sichtbar.reduce((s, z) => s + (Number(z.stunden) || 0), 0);
+  const abgerechnetStunden = sichtbar
+    .filter((z) => z.ist_abgerechnet)
+    .reduce((s, z) => s + (Number(z.stunden) || 0), 0);
+  const offenStunden = gesamtStunden - abgerechnetStunden;
   const isThisProjectTimer = activeTimer?.projekt_id === projekt.id;
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-cardbg rounded-2xl p-4">
-          <p className="text-sm text-muted-foreground">Gesamtstunden</p>
+          <p className="text-sm text-muted-foreground">Stunden gesamt</p>
           <p className="text-2xl font-bold text-brand-dark">{gesamtStunden.toFixed(2)} h</p>
         </div>
         <div className="bg-cardbg rounded-2xl p-4">
-          <p className="text-sm text-muted-foreground">
-            {projekt.abrechnungsart === 'Pauschal' ? 'Pauschalbetrag' : 'Betrag'}
-          </p>
-          <p className="text-2xl font-bold text-brand-dark">{formatCurrency(gesamtBetrag)}</p>
+          <p className="text-sm text-muted-foreground">Abrechenbar (offen)</p>
+          <p className="text-2xl font-bold text-brand-dark">{offenStunden.toFixed(2)} h</p>
+          {abgerechnetStunden > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">{abgerechnetStunden.toFixed(2)} h abgerechnet</p>
+          )}
         </div>
       </div>
 
@@ -132,6 +131,16 @@ export default function ProjektZeiten({ projekt }) {
             />
           </div>
         </div>
+        <div>
+          <Label>Person</Label>
+          <PersonSelect
+            mitarbeiter={mitarbeiter}
+            value={manual.mitarbeiter_id}
+            onValueChange={(v) => setManual({ ...manual, mitarbeiter_id: v })}
+            placeholder="Person wählen"
+            className="min-h-[48px]"
+          />
+        </div>
         <Input
           value={manual.beschreibung}
           onChange={(e) => setManual({ ...manual, beschreibung: e.target.value })}
@@ -144,38 +153,74 @@ export default function ProjektZeiten({ projekt }) {
       </div>
 
       <div>
-        <p className="font-medium mb-3">Zeiteinträge ({eintraege.length})</p>
+        <p className="font-medium mb-3">Zeiteinträge ({sichtbar.length})</p>
         {loading ? (
           <p className="text-muted-foreground">Lade...</p>
+        ) : sichtbar.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Noch keine Zeiteinträge.</p>
         ) : (
-          <div className="space-y-2">
-            {eintraege.map((e) => (
-              <div
-                key={e.id}
-                className="flex items-center justify-between p-3 bg-cardbg rounded-xl min-h-[48px]"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium">
-                    {e.stunden} h
-                    {e.erfassungsart === 'Timer' && <span className="text-xs text-brand ml-1">⏱</span>}
-                  </p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {formatDate(e.datum)}
-                    {e.beschreibung && ` · ${e.beschreibung}`}
-                  </p>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs text-muted-foreground uppercase tracking-wide">
+                    <th className="py-2 pr-3 font-medium whitespace-nowrap">Datum</th>
+                    <th className="py-2 pr-3 font-medium whitespace-nowrap">Person</th>
+                    <th className="py-2 pr-3 font-medium">Beschreibung</th>
+                    <th className="py-2 pr-3 font-medium text-right whitespace-nowrap">Stunden</th>
+                    <th className="py-2 pr-3 font-medium whitespace-nowrap">Abgerechnet</th>
+                    <th className="py-2 font-medium" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sichtbar.map((e) => (
+                    <tr key={e.id} className="border-b border-border/40">
+                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{formatDate(e.datum)}</td>
+                      <td className="py-2 pr-3 whitespace-nowrap">{personName(e.mitarbeiter_id)}</td>
+                      <td className="py-2 pr-3 text-muted-foreground truncate max-w-[240px]">{e.beschreibung || '—'}</td>
+                      <td className="py-2 pr-3 text-right font-medium whitespace-nowrap">{e.stunden} h</td>
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', e.ist_abgerechnet ? 'bg-status-abgeschlossen/15 text-status-abgeschlossen' : 'bg-brand-light text-brand-dark')}>
+                          {e.ist_abgerechnet ? 'Ja' : 'Nein'}
+                        </span>
+                      </td>
+                      <td className="py-2 text-right">
+                        <button
+                          onClick={() => handleDelete(e.id)}
+                          className="text-muted-foreground hover:text-destructive p-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden space-y-2">
+              {sichtbar.map((e) => (
+                <div key={e.id} className="flex items-center justify-between p-3 bg-cardbg rounded-xl min-h-[48px]">
+                  <div className="min-w-0">
+                    <p className="font-medium">
+                      {e.stunden} h
+                      {e.ist_abgerechnet && <span className="ml-1.5 text-[10px] uppercase bg-status-abgeschlossen/15 text-status-abgeschlossen rounded px-1 py-0.5">abgerechnet</span>}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {formatDate(e.datum)} · {personName(e.mitarbeiter_id)}
+                    </p>
+                    {e.beschreibung && <p className="text-sm text-muted-foreground truncate">{e.beschreibung}</p>}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(e.id)}
+                    className="text-muted-foreground hover:text-destructive p-2 shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleDelete(e.id)}
-                  className="text-muted-foreground hover:text-destructive p-2 shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-            {eintraege.length === 0 && (
-              <p className="text-muted-foreground text-sm">Noch keine Zeiteinträge.</p>
-            )}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -9,10 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Car, Download, Trash2, ChevronLeft, ChevronRight, MapPin, AlertCircle, Check } from 'lucide-react';
 import AddressInput from '@/components/fahrt/AddressInput';
 import PersonSelect from '@/components/zeiten/PersonSelect';
+
+const LAST_PROJEKT_KEY = 'fahrten_letztes_projekt';
+const lastProjekt = () => (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PROJEKT_KEY)) || '';
 
 export default function Fahrtenliste() {
   const [fahrten, setFahrten] = useState([]);
@@ -25,7 +29,8 @@ export default function Fahrtenliste() {
   const [completeModal, setCompleteModal] = useState(null);
   const [mitarbeiter, setMitarbeiter] = useState([]);
   const [personFilter, setPersonFilter] = useState('alle');
-  const [form, setForm] = useState({ datum: todayISO(), startort: '', zielort: '', zweck: '', kilometer: '', projekt_id: '', mitarbeiter_id: '', uhrzeit_start: '', uhrzeit_ende: '' });
+  const [projektFilter, setProjektFilter] = useState('alle');
+  const [form, setForm] = useState({ datum: todayISO(), startort: '', zielort: '', zweck: '', kilometer: '', projekt_id: lastProjekt(), km_satz: '', abrechenbar: true, mitarbeiter_id: '', uhrzeit_start: '', uhrzeit_ende: '' });
   const [completeForm, setCompleteForm] = useState({ zweck: '', projekt_id: '', mitarbeiter_id: '' });
 
   useEffect(() => { loadAll(); }, []);
@@ -50,6 +55,7 @@ export default function Fahrtenliste() {
   const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
   const monthFahrtenAll = fahrten.filter(f => (f.datum || '').startsWith(monthStr)).sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
   const monthFahrten = monthFahrtenAll.filter(f => {
+    if (projektFilter !== 'alle' && f.projekt_id !== projektFilter) return false;
     if (personFilter === 'alle') return true;
     if (personFilter === 'ohne') return !f.mitarbeiter_id;
     return f.mitarbeiter_id === personFilter;
@@ -93,13 +99,18 @@ export default function Fahrtenliste() {
   }, [projekte, firmen]);
 
   const handleSave = async () => {
-    if (!form.datum || !form.startort || !form.zielort || !form.kilometer || !form.mitarbeiter_id) { toast.error('Bitte Datum, Person, Startort, Zielort und Kilometer ausfüllen'); return; }
+    if (!form.datum || !form.startort || !form.zielort || !form.kilometer || !form.mitarbeiter_id || !form.projekt_id) { toast.error('Bitte Datum, Person, Projekt, Startort, Zielort und Kilometer ausfüllen'); return; }
     try {
-      const payload = { ...form, kilometer: Number(form.kilometer) || 0, status: 'abgeschlossen' };
-      if (!payload.projekt_id) delete payload.projekt_id;
+      const payload = {
+        ...form,
+        kilometer: Number(form.kilometer) || 0,
+        km_satz: form.km_satz === '' ? undefined : Number(form.km_satz) || 0,
+        status: 'abgeschlossen',
+      };
       await base44.entities.Fahrt.create(payload);
+      localStorage.setItem(LAST_PROJEKT_KEY, form.projekt_id);
       toast.success('Fahrt hinzugefügt');
-      setForm({ datum: todayISO(), startort: '', zielort: '', zweck: '', kilometer: '', projekt_id: '', mitarbeiter_id: '', uhrzeit_start: '', uhrzeit_ende: '' });
+      setForm({ datum: todayISO(), startort: '', zielort: '', zweck: '', kilometer: '', projekt_id: lastProjekt(), km_satz: '', abrechenbar: true, mitarbeiter_id: '', uhrzeit_start: '', uhrzeit_ende: '' });
       setModalOpen(false);
       loadAll();
     } catch { toast.error('Speichern fehlgeschlagen'); }
@@ -107,12 +118,13 @@ export default function Fahrtenliste() {
 
   const handleComplete = async () => {
     if (!completeModal) return;
+    if (!completeForm.projekt_id) { toast.error('Bitte ein Projekt auswählen'); return; }
     try {
-      const update = { status: 'abgeschlossen' };
+      const update = { status: 'abgeschlossen', projekt_id: completeForm.projekt_id };
       if (completeForm.zweck) update.zweck = completeForm.zweck;
-      if (completeForm.projekt_id) update.projekt_id = completeForm.projekt_id;
       if (completeForm.mitarbeiter_id) update.mitarbeiter_id = completeForm.mitarbeiter_id;
       await base44.entities.Fahrt.update(completeModal.id, update);
+      localStorage.setItem(LAST_PROJEKT_KEY, completeForm.projekt_id);
       toast.success('Fahrt vervollständigt');
       setCompleteModal(null);
       setCompleteForm({ zweck: '', projekt_id: '', mitarbeiter_id: '' });
@@ -182,13 +194,23 @@ export default function Fahrtenliste() {
       {/* Person filter + Summen */}
       <Card className="p-4 space-y-3">
         <div className="flex items-center gap-3">
-          <Label className="text-sm shrink-0">Person</Label>
+          <Label className="text-sm shrink-0 w-14">Person</Label>
           <Select value={personFilter} onValueChange={setPersonFilter}>
             <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="alle">Alle Personen</SelectItem>
               <SelectItem value="ohne">Ohne Person</SelectItem>
               {mitarbeiter.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-3">
+          <Label className="text-sm shrink-0 w-14">Projekt</Label>
+          <Select value={projektFilter} onValueChange={setProjektFilter}>
+            <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="alle">Alle Projekte</SelectItem>
+              {projekte.map(p => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -295,6 +317,7 @@ export default function Fahrtenliste() {
                           <div className="flex items-center gap-3 mt-1 flex-wrap">
                             <span className="text-lg font-bold text-brand">{(f.kilometer || 0).toFixed(1)} km</span>
                             {f.projekt_id && <Link to={`/projekte/${f.projekt_id}`} className="text-xs text-accent hover:underline truncate">{projName(f.projekt_id)}</Link>}
+                            {f.abrechenbar === false && <span className="text-xs text-amber-600">nicht abrechenbar</span>}
                             {f.uhrzeit_start && <span className="text-xs text-muted-foreground">{f.uhrzeit_start}{f.uhrzeit_ende ? `–${f.uhrzeit_ende}` : ''}</span>}
                             {f.mitarbeiter_id ? <span className="text-xs text-muted-foreground">{personName(f.mitarbeiter_id)}</span> : <span className="text-xs text-amber-600">Ohne Person</span>}
                           </div>
@@ -354,13 +377,26 @@ export default function Fahrtenliste() {
               <PersonSelect mitarbeiter={mitarbeiter} value={form.mitarbeiter_id} onValueChange={(v) => setForm({ ...form, mitarbeiter_id: v })} placeholder="Person wählen" className="min-h-[48px]" />
             </div>
             <div>
-              <Label>Projekt</Label>
-              <Select value={form.projekt_id} onValueChange={(v) => setForm({ ...form, projekt_id: v })}>
+              <Label>Projekt *</Label>
+              <Select value={form.projekt_id || undefined} onValueChange={(v) => setForm({ ...form, projekt_id: v })}>
                 <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Projekt wählen" /></SelectTrigger>
                 <SelectContent>
                   {projekte.map(p => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Km-Satz (€/km, optional)</Label>
+                <Input type="number" step="0.01" value={form.km_satz} onChange={(e) => setForm({ ...form, km_satz: e.target.value })} placeholder="Standard" className="min-h-[48px]" />
+              </div>
+              <div>
+                <Label>Abrechenbar</Label>
+                <div className="flex items-center min-h-[48px] px-3 rounded-md border border-input">
+                  <Switch checked={form.abrechenbar} onCheckedChange={(v) => setForm({ ...form, abrechenbar: v })} />
+                  <span className="ml-2 text-sm text-muted-foreground">{form.abrechenbar ? 'Ja' : 'Nein'}</span>
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -402,8 +438,8 @@ export default function Fahrtenliste() {
                 <PersonSelect mitarbeiter={mitarbeiter} value={completeForm.mitarbeiter_id} onValueChange={(v) => setCompleteForm({ ...completeForm, mitarbeiter_id: v })} placeholder="Person wählen" className="min-h-[48px]" />
               </div>
               <div>
-                <Label>Projekt</Label>
-                <Select value={completeForm.projekt_id} onValueChange={(v) => setCompleteForm({ ...completeForm, projekt_id: v })}>
+                <Label>Projekt *</Label>
+                <Select value={completeForm.projekt_id || undefined} onValueChange={(v) => setCompleteForm({ ...completeForm, projekt_id: v })}>
                   <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Projekt wählen" /></SelectTrigger>
                   <SelectContent>
                     {projekte.map(p => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}

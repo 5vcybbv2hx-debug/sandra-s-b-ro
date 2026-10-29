@@ -27,9 +27,9 @@ export default function Einstellungen() {
     try {
       const settings = await base44.entities.Kapazitaetseinstellung.list();
       let c = settings[0];
-      if (!c) { c = await base44.entities.Kapazitaetseinstellung.create({ woechentliche_zielstunden: 25, stundensatz_standard: 65, steuerrueckstellung_prozent: 30, monatliches_umsatzziel: 6500, erfahrungswerte: {} }); }
+      if (!c) { c = await base44.entities.Kapazitaetseinstellung.create({ woechentliche_zielstunden: 25, stundensatz_standard: 65, fahrtkosten_satz_km: 0.3, steuerrueckstellung_prozent: 30, monatliches_umsatzziel: 6500, erfahrungswerte: {} }); }
       setConfig(c); setErfahrungswerte(JSON.stringify(c.erfahrungswerte || {}, null, 2));
-      saveSettings({ woechentliche_zielstunden: c.woechentliche_zielstunden, stundensatz_standard: c.stundensatz_standard, steuerrueckstellung_prozent: c.steuerrueckstellung_prozent, monatliches_umsatzziel: c.monatliches_umsatzziel, erfahrungswerte: c.erfahrungswerte || {}, warning_threshold: getSettings().warning_threshold || 80 });
+      saveSettings({ woechentliche_zielstunden: c.woechentliche_zielstunden, stundensatz_standard: c.stundensatz_standard, fahrtkosten_satz_km: c.fahrtkosten_satz_km ?? 0.3, steuerrueckstellung_prozent: c.steuerrueckstellung_prozent, monatliches_umsatzziel: c.monatliches_umsatzziel, erfahrungswerte: c.erfahrungswerte || {}, warning_threshold: getSettings().warning_threshold || 80 });
     } catch (e) { console.error(e); }
   };
 
@@ -39,8 +39,9 @@ export default function Einstellungen() {
     setSaving(true);
     try {
       let erfObj = {}; try { erfObj = JSON.parse(erfahrungswerte); } catch { toast.error('Erfahrungswerte: ungültiges JSON'); setSaving(false); return; }
-      const updated = await base44.entities.Kapazitaetseinstellung.update(config.id, { woechentliche_zielstunden: Number(config.woechentliche_zielstunden) || 25, stundensatz_standard: Number(config.stundensatz_standard) || 65, steuerrueckstellung_prozent: Number(config.steuerrueckstellung_prozent) || 30, monatliches_umsatzziel: Number(config.monatliches_umsatzziel) || 6500, erfahrungswerte: erfObj });
-      setConfig(updated); saveSettings({ woechentliche_zielstunden: updated.woechentliche_zielstunden, stundensatz_standard: updated.stundensatz_standard, steuerrueckstellung_prozent: updated.steuerrueckstellung_prozent, monatliches_umsatzziel: updated.monatliches_umsatzziel, erfahrungswerte: erfObj, warning_threshold: getSettings().warning_threshold || 80 });
+      const kmSatz = Number(config.fahrtkosten_satz_km) > 0 ? Number(config.fahrtkosten_satz_km) : 0.3;
+      const updated = await base44.entities.Kapazitaetseinstellung.update(config.id, { woechentliche_zielstunden: Number(config.woechentliche_zielstunden) || 25, stundensatz_standard: Number(config.stundensatz_standard) || 65, fahrtkosten_satz_km: kmSatz, steuerrueckstellung_prozent: Number(config.steuerrueckstellung_prozent) || 30, monatliches_umsatzziel: Number(config.monatliches_umsatzziel) || 6500, erfahrungswerte: erfObj });
+      setConfig(updated); saveSettings({ woechentliche_zielstunden: updated.woechentliche_zielstunden, stundensatz_standard: updated.stundensatz_standard, fahrtkosten_satz_km: kmSatz, steuerrueckstellung_prozent: updated.steuerrueckstellung_prozent, monatliches_umsatzziel: updated.monatliches_umsatzziel, erfahrungswerte: erfObj, warning_threshold: getSettings().warning_threshold || 80 });
       toast.success('Einstellungen gespeichert');
     } catch (e) { toast.error('Fehler'); } finally { setSaving(false); }
   };
@@ -56,6 +57,7 @@ export default function Einstellungen() {
       <Card className="p-5 shadow-sm"><h3 className="font-semibold mb-4">Kapazität & Finanzen</h3><div className="grid grid-cols-2 gap-3">
         <div><Label>Wochenstunden-Ziel</Label><Input type="number" value={config.woechentliche_zielstunden} onChange={(e) => setConfig({ ...config, woechentliche_zielstunden: e.target.value })} className="min-h-[48px]" /></div>
         <div><Label>Standard-Stundensatz (€)</Label><Input type="number" value={config.stundensatz_standard} onChange={(e) => setConfig({ ...config, stundensatz_standard: e.target.value })} className="min-h-[48px]" /></div>
+        <div><Label>Fahrtkosten-Satz pro km (€)</Label><Input type="number" step="0.01" value={config.fahrtkosten_satz_km ?? 0.3} onChange={(e) => setConfig({ ...config, fahrtkosten_satz_km: e.target.value })} className="min-h-[48px]" /></div>
         <div><Label>Steuerrückstellung (%)</Label><Input type="number" value={config.steuerrueckstellung_prozent} onChange={(e) => setConfig({ ...config, steuerrueckstellung_prozent: e.target.value })} className="min-h-[48px]" /></div>
         <div><Label>Monatsumsatzziel (€)</Label><Input type="number" value={config.monatliches_umsatzziel} onChange={(e) => setConfig({ ...config, monatliches_umsatzziel: e.target.value })} className="min-h-[48px]" /></div>
       </div></Card>
