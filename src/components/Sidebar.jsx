@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Clock, CheckSquare, ChevronDown, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar, Bot } from 'lucide-react';
+import { Home, FolderKanban, Clock, CheckSquare, ChevronDown, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar, Bot, Lightbulb } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { useMyTaskCount } from '@/lib/useMyTaskCount';
+import { useOpenWunschCount } from '@/lib/useOpenWunschCount';
 import { useElara } from '@/lib/ElaraContext';
 
 export default function Sidebar() {
   const { user } = useAuth();
   const myTaskCount = useMyTaskCount();
+  const openWunschCount = useOpenWunschCount();
   const [mehrOpen, setMehrOpen] = useState(false);
   const { openElara } = useElara();
 
@@ -36,6 +38,7 @@ export default function Sidebar() {
     { to: '/vorlagen', label: 'Vorlagen', icon: LayoutTemplate },
     { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
     { to: '/nas-sync', label: 'NAS Sync', icon: HardDrive },
+    { to: '/aenderungswuensche', label: 'Änderungswünsche', icon: Lightbulb, badge: openWunschCount },
     { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
   ];
 

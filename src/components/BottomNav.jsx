@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FolderKanban, Clock, CheckSquare, MoreHorizontal, X, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar, Bot } from 'lucide-react';
+import { Home, FolderKanban, Clock, CheckSquare, MoreHorizontal, X, CalendarDays, Phone, Car, Euro, Wallet, BarChart3, FileText, Users, UserCog, Printer, LayoutTemplate, HardDrive, Settings, Shield, FileSpreadsheet, Calendar, Bot, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMyTaskCount } from '@/lib/useMyTaskCount';
 import { useElara } from '@/lib/ElaraContext';
@@ -34,6 +34,7 @@ export default function BottomNav() {
     { to: '/vorlagen', label: 'Vorlagen', icon: LayoutTemplate },
     { to: '/wochenuebersicht', label: 'Wochenübersicht', icon: Calendar },
     { to: '/nas-sync', label: 'NAS Sync', icon: HardDrive },
+    { to: '/aenderungswuensche', label: 'Änderungswünsche', icon: Lightbulb },
     { to: '/einstellungen', label: 'Einstellungen', icon: Settings },
   ];
 
