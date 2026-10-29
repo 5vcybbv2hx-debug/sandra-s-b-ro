@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import ProjektSucheSelect from '@/components/druckauftraege/ProjektSucheSelect';
 import { Loader2 } from 'lucide-react';
 import { todayISO } from '@/lib/format';
 import { toast } from 'sonner';
@@ -52,13 +53,12 @@ export default function DruckauftragFormModal({ onClose, onSaved, editItem, proj
         <DialogHeader><DialogTitle>{editItem ? 'Bearbeiten' : 'Neuer Druckauftrag'}</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div><Label>Projekt *</Label>
-            <Select value={form.projekt_id || '_none'} onValueChange={v => setForm(f => ({ ...f, projekt_id: v === '_none' ? '' : v }))}>
-              <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Projekt wählen" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="_none">Kein Projekt</SelectItem>
-                {projekte.map(p => <SelectItem key={p.id} value={p.id}>{p.projekt_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <ProjektSucheSelect
+              projekte={projekte}
+              value={form.projekt_id}
+              onValueChange={v => setForm(f => ({ ...f, projekt_id: v }))}
+              placeholder="Projekt suchen..."
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Datum</Label><Input type="date" value={form.datum} onChange={e => setForm(f => ({ ...f, datum: e.target.value }))} className="min-h-[48px]" /></div>
