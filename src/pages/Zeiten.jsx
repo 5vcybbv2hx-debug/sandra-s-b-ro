@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 
 const LAST_PERSON_KEY = 'zeiten_letzte_person';
 const LAST_PROJEKT_KEY = 'zeiten_letztes_projekt';
+const PHASEN_ORDER = ['Entwurf', 'Baugesuch', 'Werkplanung'];
 
 const getWeekKey = (dateStr) => {
   if (!dateStr) return 'unknown';
@@ -40,10 +41,12 @@ export default function Zeiten() {
   const [eintraege, setEintraege] = useState([]);
   const [projekte, setProjekte] = useState([]);
   const [mitarbeiter, setMitarbeiter] = useState([]);
+  const [phasen, setPhasen] = useState([]);
   const [loading, setLoading] = useState(true);
   const [manualForm, setManualForm] = useState({
     mitarbeiter_id: (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PERSON_KEY)) || '',
     projekt_id: (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PROJEKT_KEY)) || '',
+    phase_id: '',
     datum: todayISO(),
     stunden: '',
     beschreibung: ''
@@ -62,14 +65,16 @@ export default function Zeiten() {
 
   const loadData = async () => {
     try {
-      const [e, p, m] = await Promise.all([
+      const [e, p, m, ph] = await Promise.all([
         base44.entities.Zeiteintrag.list('-datum', 500),
         base44.entities.Projekt.list('-updated_date', 200),
-        base44.entities.Mitarbeiter.list('-name', 200)
+        base44.entities.Mitarbeiter.list('-name', 200),
+        base44.entities.Projektphase.list('-created_date', 500)
       ]);
       setEintraege(e.filter(x => !x.timer_laeuft));
       setProjekte(p);
       setMitarbeiter(m);
+      setPhasen(ph);
     } catch (e) {
       console.error(e);
     } finally {
@@ -79,6 +84,9 @@ export default function Zeiten() {
 
   const projName = (pid) => projekte.find(p => p.id === pid)?.projekt_name || '—';
   const personName = (id) => mitarbeiter.find(m => m.id === id)?.name || '—';
+  const phasenVonProjekt = phasen
+    .filter(p => p.projekt_id === manualForm.projekt_id)
+    .sort((a, b) => PHASEN_ORDER.indexOf(a.phase) - PHASEN_ORDER.indexOf(b.phase));
 
   const checkDuplicate = (projekt_id, datum, stunden) => {
     return eintraege.some(
@@ -98,6 +106,7 @@ export default function Zeiten() {
       await base44.entities.Zeiteintrag.create({
         mitarbeiter_id: manualForm.mitarbeiter_id,
         projekt_id: manualForm.projekt_id,
+        phase_id: manualForm.phase_id || undefined,
         datum: manualForm.datum,
         stunden: parseFloat(manualForm.stunden),
         beschreibung: manualForm.beschreibung || ''
@@ -316,7 +325,7 @@ export default function Zeiten() {
 
       {/* Kompaktes Erfassungsformular */}
       <Card className="p-4 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
           <PersonSelect
             mitarbeiter={mitarbeiter}
             value={manualForm.mitarbeiter_id}
@@ -332,11 +341,24 @@ export default function Zeiten() {
           />
           <ProjektSelect
             value={manualForm.projekt_id}
-            onValueChange={v => setManualForm({ ...manualForm, projekt_id: v })}
+            onValueChange={v => setManualForm({ ...manualForm, projekt_id: v, phase_id: '' })}
             onProjectCreated={p => setProjekte(prev => [p, ...prev])}
             placeholder="Projekt wählen..."
             className="min-h-[44px]"
           />
+          <Select
+            value={manualForm.phase_id || '_none'}
+            onValueChange={v => setManualForm({ ...manualForm, phase_id: v === '_none' ? '' : v })}
+            disabled={phasenVonProjekt.length === 0}
+          >
+            <SelectTrigger className="min-h-[44px]">
+              <SelectValue placeholder={manualForm.projekt_id ? 'Keine Phase' : 'Phase (Projekt wählen)'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">Keine Phase</SelectItem>
+              {phasenVonProjekt.map(p => <SelectItem key={p.id} value={p.id}>{p.phase}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Input
             type="number"
             step="0.25"
