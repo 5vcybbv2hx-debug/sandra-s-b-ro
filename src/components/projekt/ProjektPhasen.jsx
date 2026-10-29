@@ -68,10 +68,10 @@ export default function ProjektPhasen({ projekt, firma, onUpdate }) {
         {phasen.map((ph) => {
           const ist = phaseStunden(ph.id);
           const geplant = ph.stunden_geschaetzt || 0;
-          const isCurrent = projekt.aktuelle_phase === ph.phase;
+          const isCurrent = ph.status === 'Aktiv' || projekt.aktuelle_phase === ph.phase;
           const isOverdue = ph.enddatum_geplant && daysUntil(ph.enddatum_geplant) < 0 && ph.status !== 'Abgeschlossen';
           return (
-            <Card key={ph.id} className={cn('p-4 shadow-sm transition-all', isCurrent && 'ring-2 ring-brand', isOverdue && 'border-2 border-red-400')}>
+            <Card key={ph.id} className={cn('p-4 shadow-sm transition-all', isCurrent ? 'ring-2 ring-brand' : 'bg-cardbg opacity-70', isOverdue && 'border-2 border-red-400')}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">{isCurrent && <div className="w-2 h-2 rounded-full bg-brand animate-pulse" />}<h4 className="font-semibold">{ph.phase}</h4></div>
                 <Select value={ph.status} onValueChange={(v) => updatePhase(ph.id, 'status', v)}><SelectTrigger className="w-32 h-8 min-h-[32px] text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Offen">Offen</SelectItem><SelectItem value="Aktiv">Aktiv</SelectItem><SelectItem value="Abgeschlossen">Abgeschlossen</SelectItem></SelectContent></Select>

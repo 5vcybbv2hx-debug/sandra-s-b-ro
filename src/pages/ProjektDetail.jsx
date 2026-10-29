@@ -24,6 +24,7 @@ export default function ProjektDetail() {
   const [firma, setFirma] = useState(null);
   const [ansprechpartner, setAnsprechpartner] = useState(null);
   const [zeiten, setZeiten] = useState([]);
+  const [phasen, setPhasen] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
@@ -38,6 +39,8 @@ export default function ProjektDetail() {
       if (p.haupt_ansprechpartner_id) { try { setAnsprechpartner(await base44.entities.Ansprechpartner.get(p.haupt_ansprechpartner_id)); } catch {} }
       const z = await base44.entities.Zeiteintrag.filter({ projekt_id: id }, '-datum', 500);
       setZeiten(z.filter((x) => !x.timer_laeuft));
+      const ph = await base44.entities.Projektphase.filter({ projekt_id: id }, '-created_date', 20);
+      setPhasen(ph);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
@@ -53,7 +56,14 @@ export default function ProjektDetail() {
   if (loading) return <div className="p-8 text-center text-muted-foreground">Lade Projekt...</div>;
   if (!projekt) return <div className="p-8 text-center text-muted-foreground">Projekt nicht gefunden.</div>;
 
-  const aktuellePhaseIndex = PHASEN.indexOf(projekt.aktuelle_phase || 'Entwurf');
+  const aktivePhase = phasen.find((p) => p.status === 'Aktiv')?.phase || projekt.aktuelle_phase || 'Entwurf';
+  const aktivePhaseIndex = PHASEN.indexOf(aktivePhase);
+  const phaseZustand = (phase, i) => {
+    if (phase === aktivePhase) return 'aktiv';
+    const rec = phasen.find((p) => p.phase === phase);
+    if (rec?.status === 'Abgeschlossen' || i < aktivePhaseIndex) return 'abgeschlossen';
+    return 'offen';
+  };
   const gesamtStunden = zeiten.reduce((s, z) => s + (z.stunden || 0), 0);
   const abrechnungBetrag = projekt.abrechnungsart === 'Pauschal' ? projekt.pauschalbetrag : gesamtStunden * (projekt.stundensatz || 0);
 
@@ -92,15 +102,25 @@ export default function ProjektDetail() {
       <Card className="p-5 shadow-sm">
         <div className="flex items-center justify-between mb-3"><h3 className="font-semibold">Phasen-Fortschritt</h3></div>
         <div className="flex items-center gap-1">
-          {PHASEN.map((phase, i) => (
-            <div key={phase} className="flex items-center flex-1">
-              <div className={cn('flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-h-[40px]', i === aktuellePhaseIndex ? 'bg-brand text-white' : i < aktuellePhaseIndex ? 'bg-status-abgeschlossen text-white' : 'bg-cardbg text-muted-foreground')}>
-                {i < aktuellePhaseIndex && <Check className="w-4 h-4" />}
-                <span className="text-sm font-medium">{phase}</span>
+          {PHASEN.map((phase, i) => {
+            const zustand = phaseZustand(phase, i);
+            return (
+              <div key={phase} className="flex items-center flex-1">
+                <div
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-h-[40px]',
+                    zustand === 'aktiv'
+                      ? 'bg-brand text-white font-semibold shadow-sm'
+                      : 'bg-cardbg text-muted-foreground'
+                  )}
+                >
+                  {zustand === 'abgeschlossen' && <Check className="w-4 h-4 shrink-0" />}
+                  <span className="text-sm">{phase}</span>
+                </div>
+                {i < PHASEN.length - 1 && <div className="w-4 h-0.5 bg-border" />}
               </div>
-              {i < PHASEN.length - 1 && <div className={cn('w-4 h-0.5', i < aktuellePhaseIndex ? 'bg-status-abgeschlossen' : 'bg-border')} />}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 
