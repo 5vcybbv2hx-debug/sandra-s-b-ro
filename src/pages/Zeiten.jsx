@@ -23,7 +23,7 @@ const getWeekKey = (dateStr) => {
   if (!dateStr) return 'unknown';
   const d = new Date(dateStr);
   const monday = startOfWeek(d, { weekStartsOn: 1 });
-  return monday.toISOString().split('T')[0];
+  return dfFormat(monday, 'yyyy-MM-dd');
 };
 
 const formatWeekRange = (monday, sunday) => {
@@ -457,7 +457,7 @@ export default function Zeiten() {
           <div className="divide-y divide-border">
             {sortedWeekKeys.map(weekKey => {
               const weekEntries = groups[weekKey];
-              const monday = new Date(weekKey);
+              const monday = new Date(weekKey + 'T00:00:00');
               const sunday = endOfWeek(monday, { weekStartsOn: 1 });
               const kw = getISOWeek(monday);
               const weekLabel = formatWeekRange(monday, sunday);
