@@ -14,10 +14,10 @@ import { toast } from 'sonner';
 const FORMATE = ['A4', 'A3', 'A2', 'A1', 'A0'];
 const ARTEN = ['S/W', 'Farbig', 'Plot'];
 
-export default function DruckauftragFormModal({ onClose, onSaved, editItem, projekte }) {
+export default function DruckauftragFormModal({ onClose, onSaved, editItem, projekte, defaultProjektId }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    projekt_id: '', datum: todayISO(), format: 'A4', exemplare: 1, art: 'S/W', notiz: '',
+    projekt_id: defaultProjektId || '', datum: todayISO(), format: 'A4', exemplare: 1, art: 'S/W', notiz: '',
   });
 
   useEffect(() => {

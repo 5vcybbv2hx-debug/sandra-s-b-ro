@@ -8,7 +8,7 @@ import { todayISO } from '@/lib/format';
 import { toast } from 'sonner';
 import AddressInput from '@/components/fahrt/AddressInput';
 
-export default function QuickDriveModal({ open, onOpenChange }) {
+export default function QuickDriveModal({ open, onOpenChange, defaultProjektId, onSaved }) {
   const [startort, setStartort] = useState('');
   const [zielort, setZielort] = useState('');
   const [kilometer, setKilometer] = useState('');
@@ -20,12 +20,20 @@ export default function QuickDriveModal({ open, onOpenChange }) {
 
   useEffect(() => {
     if (open) {
-      base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 50).then(setProjekte).catch(() => {});
+      base44.entities.Projekt.filter({ status: 'Aktiv' }, '-updated_date', 50).then(list => {
+        if (defaultProjektId && !list.some(p => p.id === defaultProjektId)) {
+          base44.entities.Projekt.get(defaultProjektId)
+            .then(p => setProjekte([p, ...list]))
+            .catch(() => setProjekte(list));
+        } else {
+          setProjekte(list);
+        }
+      }).catch(() => {});
       base44.entities.Firma.list('-created_date', 200).then(setFirmen).catch(() => {});
       base44.entities.Fahrt.list('-datum', 500).then(setPastFahrten).catch(() => {});
-      setStartort(''); setZielort(''); setKilometer(''); setProjektId('');
+      setStartort(''); setZielort(''); setKilometer(''); setProjektId(defaultProjektId || '');
     }
-  }, [open]);
+  }, [open, defaultProjektId]);
 
   // Häufige Adressen aus vergangenen Fahrten
   const frequentAddresses = useMemo(() => {
@@ -64,6 +72,7 @@ export default function QuickDriveModal({ open, onOpenChange }) {
         status: 'abgeschlossen',
       });
       toast.success('Fahrt gespeichert');
+      onSaved?.();
       onOpenChange(false);
     } catch (e) {
       toast.error('Fehler beim Speichern');
