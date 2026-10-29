@@ -2,6 +2,10 @@
   "name": "Fahrt",
   "type": "object",
   "properties": {
+    "mitarbeiter_id": {
+      "type": "string",
+      "title": "Person"
+    },
     "datum": {
       "type": "string",
       "format": "date",
@@ -70,6 +74,11 @@
         },
         {
           "created_by_id": "anonymous"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
         }
       ]
     }

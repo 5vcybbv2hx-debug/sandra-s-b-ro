@@ -6,7 +6,6 @@ import TimerBar from './TimerBar';
 import QuickCaptureFAB from './QuickCaptureFAB';
 import FeierabendFAB from './FeierabendFAB';
 import { useEffect } from 'react';
-import FragebogenGate from '@/components/personal/FragebogenGate';
 import { syncSettingsFromServer } from '@/lib/settings';
 import { ElaraProvider } from '@/lib/ElaraContext';
 import ElaraChatPanel from './ElaraChatPanel';
@@ -16,7 +15,6 @@ export default function Layout() {
   return (
     <ElaraProvider>
       <div className="flex min-h-screen bg-background">
-        <FragebogenGate />
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <TimerBar />

@@ -2,6 +2,10 @@
   "name": "Zeiteintrag",
   "type": "object",
   "properties": {
+    "mitarbeiter_id": {
+      "type": "string",
+      "title": "Person"
+    },
     "projekt_id": {
       "type": "string",
       "reference": "Projekt",
