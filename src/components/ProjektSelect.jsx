@@ -15,6 +15,7 @@ export default function ProjektSelect({ value, onValueChange, onProjectCreated, 
   const [open, setOpen] = useState(false);
   const [projekte, setProjekte] = useState([]);
   const [firmen, setFirmen] = useState([]);
+  const [ansprechpartner, setAnsprechpartner] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState('list');
   const [search, setSearch] = useState('');
@@ -24,14 +25,16 @@ export default function ProjektSelect({ value, onValueChange, onProjectCreated, 
   const load = async () => {
     setLoading(true);
     try {
-      const [p, f] = await Promise.all([
+      const [p, f, a] = await Promise.all([
         filter
           ? base44.entities.Projekt.filter(filter, '-updated_date', 200)
           : base44.entities.Projekt.list('-updated_date', 200),
-        base44.entities.Firma.list('name', 200).catch(() => [])
+        base44.entities.Firma.list('name', 200).catch(() => []),
+        base44.entities.Ansprechpartner.list('nachname', 400).catch(() => [])
       ]);
       setProjekte(p);
       setFirmen(f);
+      setAnsprechpartner(a);
     } catch (e) {
       console.error(e);
     } finally {
@@ -44,9 +47,26 @@ export default function ProjektSelect({ value, onValueChange, onProjectCreated, 
   }, [open]);
 
   const selected = projekte.find(p => p.id === value);
-  const filtered = search
-    ? projekte.filter(p => p.projekt_name?.toLowerCase().includes(search.toLowerCase()))
-    : projekte;
+  const firmaName = (id) => firmen.find(f => f.id === id)?.name || '';
+  const personName = (id) => {
+    const a = ansprechpartner.find(x => x.id === id);
+    return a ? `${a.vorname || ''} ${a.nachname || ''}`.trim() : '';
+  };
+  const firmenPersonen = (firma_id) => ansprechpartner
+    .filter(a => a.firma_id === firma_id)
+    .map(a => `${a.vorname || ''} ${a.nachname || ''}`.trim())
+    .join(' ');
+
+  const suchtext = (p) => [
+    p.projekt_name,
+    firmaName(p.firma_id),
+    firmenPersonen(p.firma_id),
+    personName(p.haupt_ansprechpartner_id),
+    ...(p.weitere_ansprechpartner_ids || []).map(personName)
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  const q = search.trim().toLowerCase();
+  const filtered = q ? projekte.filter(p => suchtext(p).includes(q)) : projekte;
 
   const handleCreate = async () => {
     if (!newProj.projekt_name.trim()) return;
@@ -111,7 +131,7 @@ export default function ProjektSelect({ value, onValueChange, onProjectCreated, 
         {mode === 'list' ? (
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Projekt suchen..."
+              placeholder="Projekt, Auftraggeber oder Kontakt suchen..."
               value={search}
               onValueChange={setSearch}
             />
@@ -129,8 +149,15 @@ export default function ProjektSelect({ value, onValueChange, onProjectCreated, 
                       setOpen(false);
                     }}
                   >
-                    <Check className={cn('mr-2 h-4 w-4', value === p.id ? 'opacity-100' : 'opacity-0')} />
-                    <span className="truncate">{p.projekt_name}</span>
+                    <Check className={cn('mr-2 h-4 w-4 shrink-0', value === p.id ? 'opacity-100' : 'opacity-0')} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate">{p.projekt_name}</div>
+                      {(firmaName(p.firma_id) || personName(p.haupt_ansprechpartner_id)) && (
+                        <div className="truncate text-xs text-muted-foreground">
+                          {[firmaName(p.firma_id), personName(p.haupt_ansprechpartner_id)].filter(Boolean).join(' · ')}
+                        </div>
+                      )}
+                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>
