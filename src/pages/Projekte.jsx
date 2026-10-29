@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Pin, X } from 'lucide-react';
+import { Plus, Search, Pin, X, ChevronDown, ChevronRight } from 'lucide-react';
 import ProjektRow from '@/components/projekt/ProjektRow';
 import KundenGruppe from '@/components/projekt/KundenGruppe';
 import ProjektStartWizard from '@/components/projekt/ProjektStartWizard';
@@ -24,6 +24,7 @@ export default function Projekte() {
   const [fahrten, setFahrten] = useState([]);
   const [mitarbeiter, setMitarbeiter] = useState([]);
   const [auswertungZeitraum, setAuswertungZeitraum] = useState('gesamt');
+  const [showAuswertung, setShowAuswertung] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilterRaw] = useState(() => {
@@ -217,11 +218,16 @@ export default function Projekte() {
 
       {/* Auswertung */}
       <Card className="p-4 shadow-sm mb-6">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
-          <div>
-            <h2 className="font-semibold">Auswertung</h2>
-            <p className="text-xs text-muted-foreground">Stunden, Kilometer und Kosten je Projekt</p>
-          </div>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <button onClick={() => setShowAuswertung((v) => !v)} className="flex items-center gap-2 text-left min-h-[44px]">
+            {showAuswertung
+              ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+              : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
+            <div>
+              <h2 className="font-semibold">Auswertung</h2>
+              <p className="text-xs text-muted-foreground">Stunden, Kilometer und Kosten je Projekt</p>
+            </div>
+          </button>
           <Select value={auswertungZeitraum} onValueChange={setAuswertungZeitraum}>
             <SelectTrigger className="w-44 min-h-[44px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -231,13 +237,17 @@ export default function Projekte() {
             </SelectContent>
           </Select>
         </div>
-        <ProjektAuswertung
-          projekte={filtered}
-          zeiten={zeiten}
-          fahrten={fahrten}
-          mitarbeiter={mitarbeiter}
-          zeitraum={auswertungZeitraum}
-        />
+        {showAuswertung && (
+          <div className="mt-3">
+            <ProjektAuswertung
+              projekte={filtered}
+              zeiten={zeiten}
+              fahrten={fahrten}
+              mitarbeiter={mitarbeiter}
+              zeitraum={auswertungZeitraum}
+            />
+          </div>
+        )}
       </Card>
 
       {/* Pinned Section */}
