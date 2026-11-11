@@ -95,38 +95,58 @@ Deno.serve(async (req) => {
     } catch {}
   }
 
-  // ─── 2. FileStation List ───────────────────────────────────────
-  async function listShares(s: string): Promise<any[]> {
-    const params = new URLSearchParams({
-      api: 'SYNO.FileStation.List',
-      version: '2',
-      method: 'list',
-      additional: '["shares"]',
-      _sid: s,
-    });
-    const res = await fetchWithTimeout(`${baseUrl}/webapi/entry.cgi?${params.toString()}`, {}, 20000);
+  // ─── 2. FileStation ────────────────────────────────────────────
+  const FALLBACK_SHARE_NAMES = ['Projekte', 'projekte', 'Bautechnik', 'home', 'homes'];
+
+  // Synology-Fehlercodes verständlich einordnen
+  function describeError(code: number | undefined, context: string): string {
+    if (code === 103) return `${context}: Methode wird von dieser DSM-Version nicht unterstützt (code 103)`;
+    if (code === 400) return `${context}: ungültige Parameter (code 400)`;
+    if (code === 401 || code === 402) return `${context}: System- oder Berechtigungsfehler (code ${code})`;
+    if (code === 105 || code === 106 || code === 119) {
+      return `${context}: Login/Session ungültig (code ${code}) — SID abgelaufen oder Login fehlgeschlagen`;
+    }
+    if (code === 403 || code === 407) {
+      return `${context}: FileStation-Berechtigung für NAS-User prüfen; Package Center: FileStation installiert? (code ${code})`;
+    }
+    return `${context} (code ${code ?? 'unknown'})`;
+  }
+
+  async function fsRequest(s: string, params: Record<string, string>) {
+    const usp = new URLSearchParams({ ...params, _sid: s });
+    const res = await fetchWithTimeout(`${baseUrl}/webapi/entry.cgi?${usp.toString()}`, {}, 20000);
     const data = await res.json();
     if (!data?.success) {
       const code = data?.error?.code;
-      // code 402 -> FileStation nicht installiert; code 403 -> keine Berechtigung
-      let msg = `FileStation list shares fehlgeschlagen (code ${code ?? 'unknown'})`;
-      if (code === 402) msg = 'FileStation nicht installiert oder keine Berechtigung';
-      throw new Error(msg);
+      const err: any = new Error(describeError(code, `FileStation ${params.method} fehlgeschlagen`));
+      err.code = code;
+      err.request = usp.toString();
+      throw err;
     }
-    return data?.data?.shares ?? [];
+    return data;
   }
 
+  // Shares auflisten: eigener Methodenname LIST_SHARE (ohne additional-Parameter)
+  async function listShares(s: string, method = 'LIST_SHARE'): Promise<{ name: string; path: string }[]> {
+    const data = await fsRequest(s, {
+      api: 'SYNO.FileStation.List',
+      version: '2',
+      method,
+    });
+    const list = data?.data?.shares ?? [];
+    return list
+      .map((sh: any) => ({ name: sh?.name ?? '', path: sh?.path ?? (sh?.name ? `/${sh.name}` : '') }))
+      .filter((sh: any) => !!sh.path);
+  }
+
+  // Oberste Ebene eines Shares: method=list, nur Namen
   async function listFolder(s: string, folderPath: string): Promise<string[]> {
-    const params = new URLSearchParams({
+    const data = await fsRequest(s, {
       api: 'SYNO.FileStation.List',
       version: '2',
       method: 'list',
-      folder_path: JSON.stringify([folderPath]),
-      _sid: s,
+      folder_path: folderPath,
     });
-    const res = await fetchWithTimeout(`${baseUrl}/webapi/entry.cgi?${params.toString()}`, {}, 20000);
-    const data = await res.json();
-    if (!data?.success) return [];
     const files = data?.data?.files ?? [];
     return files.map((f: any) => f?.name).filter((n: any) => !!n);
   }
@@ -149,28 +169,34 @@ Deno.serve(async (req) => {
       }, { status: 401 });
     }
 
-    // 2. Shares listen
+    // 2. Shares listen — bei Fehler nicht abbrechen, sondern feste Namen durchprobieren
     let shares: any[] = [];
+    let shareDiscovery = 'LIST_SHARE';
     try {
-      shares = await listShares(sid);
+      shares = await listShares(sid, 'LIST_SHARE');
     } catch (e: any) {
-      errors.push(e.message);
-      await nasLogout(sid).catch(() => {});
-      return Response.json({
-        success: false,
-        error: e.message,
-        errors,
-        shares: [],
-        folders: [],
-        projects: [],
-      }, { status: 500 });
+      const requestInfo = e.request ? ` | Request-Parameter: ${e.request}` : '';
+      // Zweiter Versuch: manche DSM-Versionen kennen nur die Kleinschreibung
+      try {
+        shares = await listShares(sid, 'list_share');
+        shareDiscovery = 'list_share';
+      } catch (e2: any) {
+        const requestInfo2 = e2.request ? ` | Request-Parameter: ${e2.request}` : '';
+        errors.push(`${e.message}${requestInfo}`);
+        errors.push(`${e2.message}${requestInfo2}`);
+        shareDiscovery = 'fallback';
+        shares = FALLBACK_SHARE_NAMES.map((n) => ({ name: n, path: `/${n}` }));
+      }
     }
 
     // 3. Share-Auswahl: NAS_PROJECTS_PATH (komma-separierte Share-Namen) falls gesetzt,
     //    sonst Shares mit "projekt" im Namen (case-insensitiv), sonst alle
     let targetShares: any[] = [];
     const shareNames: string[] = shares.map((sh: any) => sh?.path ?? sh?.name).filter((n: any) => !!n);
-    if (NAS_PROJECTS_PATH) {
+    if (shareDiscovery === 'fallback') {
+      // Feste Namen durchprobieren und Fehler je Share sammeln (kein Abbruch)
+      targetShares = shares;
+    } else if (NAS_PROJECTS_PATH) {
       const configured = NAS_PROJECTS_PATH.split(',').map(s => s.trim()).filter(Boolean);
       targetShares = shares.filter((sh: any) => {
         const name = sh?.path ?? sh?.name;
@@ -205,7 +231,7 @@ Deno.serve(async (req) => {
     // 5. App-Projekte parallel lesen (nur projekt_name, status, is_internal)
     let projects: any[] = [];
     try {
-      const result = await base44.entities.Projekt.filter({}, { fields: ['projekt_name', 'status', 'is_internal'], limit: 1000 });
+      const result = await base44.entities.Projekt.list('-created_date', 500);
       const items = (result as any)?.items ?? result ?? [];
       projects = (items as any[]).map((p: any) => ({
         projekt_name: p?.projekt_name ?? '',
@@ -222,6 +248,7 @@ Deno.serve(async (req) => {
     // 7. Rohdaten zurückgeben — KEIN Matching (macht Elara)
     return Response.json({
       success: true,
+      shareDiscovery,
       shares: shareNames,
       folders,
       projects,
