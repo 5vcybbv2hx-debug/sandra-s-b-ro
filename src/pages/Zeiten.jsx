@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -59,9 +60,12 @@ export default function Zeiten() {
   const [personFilter, setPersonFilter] = useState('alle');
   const [projektFilter, setProjektFilter] = useState('alle');
 
+  const { isAuthenticated, isLoadingAuth } = useAuth();
+
+  // Erst laden, wenn die Anmeldung steht – sonst kommen Personen/Projekte leer an
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isAuthenticated && !isLoadingAuth) loadData();
+  }, [isAuthenticated, isLoadingAuth]);
 
   const loadData = async () => {
     try {

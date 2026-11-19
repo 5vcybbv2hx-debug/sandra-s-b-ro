@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { formatDate, todayISO, monthLabel } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -37,7 +38,10 @@ export default function Fahrtenliste() {
   const [editingId, setEditingId] = useState(null);
   const [completeForm, setCompleteForm] = useState({ zweck: '', projekt_id: '', mitarbeiter_id: '' });
 
-  useEffect(() => { loadAll(); }, []);
+  const { isAuthenticated, isLoadingAuth } = useAuth();
+
+  // Erst laden, wenn die Anmeldung steht – sonst kommen Personen/Projekte leer an
+  useEffect(() => { if (isAuthenticated && !isLoadingAuth) loadAll(); }, [isAuthenticated, isLoadingAuth]);
 
   const loadAll = async () => {
     setLoading(true);
