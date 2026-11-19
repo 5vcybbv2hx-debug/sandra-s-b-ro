@@ -70,7 +70,14 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "created_by_id": "anonymous"
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
         }
       ]
     },
@@ -80,7 +87,9 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "created_by_id": "anonymous"
+          "user_condition": {
+            "role": "admin"
+          }
         }
       ]
     },
