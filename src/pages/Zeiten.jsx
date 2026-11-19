@@ -71,10 +71,16 @@ export default function Zeiten() {
         base44.entities.Mitarbeiter.list('-name', 200),
         base44.entities.Projektphase.list('-created_date', 500)
       ]);
-      setEintraege(e.filter(x => !x.timer_laeuft));
+      const fertig = e.filter(x => !x.timer_laeuft);
+      setEintraege(fertig);
       setProjekte(p);
       setMitarbeiter(m);
       setPhasen(ph);
+      // Ohne gemerkte Person: die zuletzt erfasste Person vorbelegen
+      if (!localStorage.getItem(LAST_PERSON_KEY)) {
+        const letzte = fertig.find(x => x.mitarbeiter_id);
+        if (letzte) setManualForm(prev => prev.mitarbeiter_id ? prev : { ...prev, mitarbeiter_id: letzte.mitarbeiter_id });
+      }
     } catch (e) {
       console.error(e);
     } finally {

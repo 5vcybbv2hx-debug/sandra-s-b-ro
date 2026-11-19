@@ -7,12 +7,18 @@ import { base44 } from '@/api/base44Client';
 import { todayISO } from '@/lib/format';
 import { toast } from 'sonner';
 import AddressInput from '@/components/fahrt/AddressInput';
+import PersonSelect from '@/components/zeiten/PersonSelect';
+
+const LAST_PERSON_KEY = 'fahrten_letzte_person';
+const lastPerson = () => (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PERSON_KEY)) || '';
 
 export default function QuickDriveModal({ open, onOpenChange, defaultProjektId, onSaved }) {
   const [startort, setStartort] = useState('');
   const [zielort, setZielort] = useState('');
   const [kilometer, setKilometer] = useState('');
   const [projekt_id, setProjektId] = useState('');
+  const [mitarbeiter, setMitarbeiter] = useState([]);
+  const [mitarbeiter_id, setMitarbeiterId] = useState(lastPerson());
   const [projekte, setProjekte] = useState([]);
   const [firmen, setFirmen] = useState([]);
   const [pastFahrten, setPastFahrten] = useState([]);
@@ -31,7 +37,8 @@ export default function QuickDriveModal({ open, onOpenChange, defaultProjektId, 
       }).catch(() => {});
       base44.entities.Firma.list('-created_date', 200).then(setFirmen).catch(() => {});
       base44.entities.Fahrt.list('-datum', 500).then(setPastFahrten).catch(() => {});
-      setStartort(''); setZielort(''); setKilometer(''); setProjektId(defaultProjektId || '');
+      base44.entities.Mitarbeiter.list('-name', 200).then(setMitarbeiter).catch(() => {});
+      setStartort(''); setZielort(''); setKilometer(''); setProjektId(defaultProjektId || ''); setMitarbeiterId(lastPerson());
     }
   }, [open, defaultProjektId]);
 
@@ -60,7 +67,7 @@ export default function QuickDriveModal({ open, onOpenChange, defaultProjektId, 
   }, [projekte, firmen]);
 
   const handleSave = async () => {
-    if (!startort.trim() || !zielort.trim() || !kilometer) return;
+    if (!startort.trim() || !zielort.trim() || !kilometer || !mitarbeiter_id) return;
     setSaving(true);
     try {
       await base44.entities.Fahrt.create({
@@ -69,8 +76,10 @@ export default function QuickDriveModal({ open, onOpenChange, defaultProjektId, 
         zielort: zielort.trim(),
         kilometer: parseFloat(kilometer),
         projekt_id: projekt_id || undefined,
+        mitarbeiter_id,
         status: 'abgeschlossen',
       });
+      localStorage.setItem(LAST_PERSON_KEY, mitarbeiter_id);
       toast.success('Fahrt gespeichert');
       onSaved?.();
       onOpenChange(false);
@@ -118,6 +127,10 @@ export default function QuickDriveModal({ open, onOpenChange, defaultProjektId, 
             />
           </div>
           <div>
+            <Label>Person *</Label>
+            <PersonSelect mitarbeiter={mitarbeiter} value={mitarbeiter_id} onValueChange={setMitarbeiterId} placeholder="Person wählen" className="min-h-[48px]" />
+          </div>
+          <div>
             <Label>Projekt (optional)</Label>
             <Select value={projekt_id || '_none'} onValueChange={v => setProjektId(v === '_none' ? '' : v)}>
               <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Kein Projekt" /></SelectTrigger>
@@ -129,7 +142,7 @@ export default function QuickDriveModal({ open, onOpenChange, defaultProjektId, 
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSave} disabled={!startort.trim() || !zielort.trim() || !kilometer || saving} className="min-h-[48px] w-full bg-brand hover:bg-brand-dark text-white">
+          <Button onClick={handleSave} disabled={!startort.trim() || !zielort.trim() || !kilometer || !mitarbeiter_id || saving} className="min-h-[48px] w-full bg-brand hover:bg-brand-dark text-white">
             {saving ? 'Speichert...' : 'Speichern'}
           </Button>
         </DialogFooter>

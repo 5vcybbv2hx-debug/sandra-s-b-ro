@@ -11,12 +11,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Car, Download, Trash2, ChevronLeft, ChevronRight, MapPin, AlertCircle, Check } from 'lucide-react';
+import { Plus, Car, Download, Trash2, Pencil, ChevronLeft, ChevronRight, MapPin, AlertCircle, Check } from 'lucide-react';
 import AddressInput from '@/components/fahrt/AddressInput';
 import PersonSelect from '@/components/zeiten/PersonSelect';
 
 const LAST_PROJEKT_KEY = 'fahrten_letztes_projekt';
+const LAST_PERSON_KEY = 'fahrten_letzte_person';
 const lastProjekt = () => (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PROJEKT_KEY)) || '';
+const lastPerson = () => (typeof localStorage !== 'undefined' && localStorage.getItem(LAST_PERSON_KEY)) || '';
+const emptyForm = () => ({ datum: todayISO(), startort: '', zielort: '', zweck: '', kilometer: '', projekt_id: lastProjekt(), km_satz: '', abrechenbar: true, mitarbeiter_id: lastPerson(), uhrzeit_start: '', uhrzeit_ende: '' });
 
 export default function Fahrtenliste() {
   const [fahrten, setFahrten] = useState([]);
@@ -30,7 +33,8 @@ export default function Fahrtenliste() {
   const [mitarbeiter, setMitarbeiter] = useState([]);
   const [personFilter, setPersonFilter] = useState('alle');
   const [projektFilter, setProjektFilter] = useState('alle');
-  const [form, setForm] = useState({ datum: todayISO(), startort: '', zielort: '', zweck: '', kilometer: '', projekt_id: lastProjekt(), km_satz: '', abrechenbar: true, mitarbeiter_id: '', uhrzeit_start: '', uhrzeit_ende: '' });
+  const [form, setForm] = useState(emptyForm());
+  const [editingId, setEditingId] = useState(null);
   const [completeForm, setCompleteForm] = useState({ zweck: '', projekt_id: '', mitarbeiter_id: '' });
 
   useEffect(() => { loadAll(); }, []);
@@ -98,6 +102,26 @@ export default function Fahrtenliste() {
     }).filter(p => p.label);
   }, [projekte, firmen]);
 
+  const openNew = () => { setEditingId(null); setForm(emptyForm()); setModalOpen(true); };
+
+  const openEdit = (f) => {
+    setEditingId(f.id);
+    setForm({
+      datum: f.datum || todayISO(),
+      startort: f.startort || '',
+      zielort: f.zielort || '',
+      zweck: f.zweck || '',
+      kilometer: f.kilometer != null ? String(f.kilometer) : '',
+      projekt_id: f.projekt_id || '',
+      km_satz: f.km_satz != null ? String(f.km_satz) : '',
+      abrechenbar: f.abrechenbar !== false,
+      mitarbeiter_id: f.mitarbeiter_id || '',
+      uhrzeit_start: f.uhrzeit_start || '',
+      uhrzeit_ende: f.uhrzeit_ende || '',
+    });
+    setModalOpen(true);
+  };
+
   const handleSave = async () => {
     if (!form.datum || !form.startort || !form.zielort || !form.kilometer || !form.mitarbeiter_id || !form.projekt_id) { toast.error('Bitte Datum, Person, Projekt, Startort, Zielort und Kilometer ausfüllen'); return; }
     try {
@@ -105,12 +129,18 @@ export default function Fahrtenliste() {
         ...form,
         kilometer: Number(form.kilometer) || 0,
         km_satz: form.km_satz === '' ? undefined : Number(form.km_satz) || 0,
-        status: 'abgeschlossen',
       };
-      await base44.entities.Fahrt.create(payload);
+      if (editingId) {
+        await base44.entities.Fahrt.update(editingId, payload);
+        toast.success('Fahrt aktualisiert');
+      } else {
+        await base44.entities.Fahrt.create({ ...payload, status: 'abgeschlossen' });
+        toast.success('Fahrt hinzugefügt');
+      }
       localStorage.setItem(LAST_PROJEKT_KEY, form.projekt_id);
-      toast.success('Fahrt hinzugefügt');
-      setForm({ datum: todayISO(), startort: '', zielort: '', zweck: '', kilometer: '', projekt_id: lastProjekt(), km_satz: '', abrechenbar: true, mitarbeiter_id: '', uhrzeit_start: '', uhrzeit_ende: '' });
+      localStorage.setItem(LAST_PERSON_KEY, form.mitarbeiter_id);
+      setForm(emptyForm());
+      setEditingId(null);
       setModalOpen(false);
       loadAll();
     } catch { toast.error('Speichern fehlgeschlagen'); }
@@ -165,7 +195,7 @@ export default function Fahrtenliste() {
           <Button variant="outline" onClick={exportCsv} disabled={monthFahrten.length === 0} className="gap-2">
             <Download className="w-4 h-4" /> <span className="hidden sm:inline">CSV</span>
           </Button>
-          <Button onClick={() => setModalOpen(true)} className="bg-brand hover:bg-brand/90 text-white gap-2">
+          <Button onClick={openNew} className="bg-brand hover:bg-brand/90 text-white gap-2">
             <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Fahrt</span>
           </Button>
         </div>
@@ -288,7 +318,7 @@ export default function Fahrtenliste() {
           <Car className="w-14 h-14 text-muted-foreground/40 mb-4" />
           <h3 className="text-lg font-semibold mb-1">Noch keine Fahrten in diesem Monat</h3>
           <p className="text-sm text-muted-foreground mb-4">Erfassen Sie Ihre erste Fahrt.</p>
-          <Button onClick={() => setModalOpen(true)} className="bg-brand hover:bg-brand/90 text-white gap-2">
+          <Button onClick={openNew} className="bg-brand hover:bg-brand/90 text-white gap-2">
             <Plus className="w-4 h-4" /> Fahrt hinzufügen
           </Button>
         </Card>
@@ -322,9 +352,14 @@ export default function Fahrtenliste() {
                             {f.mitarbeiter_id ? <span className="text-xs text-muted-foreground">{personName(f.mitarbeiter_id)}</span> : <span className="text-xs text-amber-600">Ohne Person</span>}
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(f.id)} className="text-muted-foreground hover:text-rose-500 shrink-0">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(f)} className="text-muted-foreground hover:text-brand">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(f.id)} className="text-muted-foreground hover:text-rose-500">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -336,9 +371,9 @@ export default function Fahrtenliste() {
       )}
 
       {/* Quick-add modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+      <Dialog open={modalOpen} onOpenChange={(o) => { setModalOpen(o); if (!o) setEditingId(null); }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Neue Fahrt</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? 'Fahrt bearbeiten' : 'Neue Fahrt'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Datum</Label>
@@ -410,7 +445,7 @@ export default function Fahrtenliste() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>Abbrechen</Button>
+            <Button variant="outline" onClick={() => { setModalOpen(false); setEditingId(null); }}>Abbrechen</Button>
             <Button onClick={handleSave} className="bg-brand hover:bg-brand/90 text-white">Speichern</Button>
           </DialogFooter>
         </DialogContent>
